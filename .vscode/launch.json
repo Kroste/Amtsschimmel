@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Amtsschimmel starten (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Amtsschimmel/bin/Debug/net10.0/Amtsschimmel.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Amtsschimmel",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Amtsschimmel starten (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-release",
+            "program": "${workspaceFolder}/Amtsschimmel/bin/Release/net10.0/Amtsschimmel.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Amtsschimmel",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "An Prozess anhängen",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}

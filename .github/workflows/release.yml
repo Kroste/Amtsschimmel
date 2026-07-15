@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Version aus Tag ableiten
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: dotnet test Amtsschimmel.Tests/Amtsschimmel.Tests.csproj -c Release
+
+      - name: Publish win-x64
+        run: >
+          dotnet publish Amtsschimmel/Amtsschimmel.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:Version=${{ steps.version.outputs.version }}
+          -o publish/win-x64
+
+      - name: Publish linux-x64
+        run: >
+          dotnet publish Amtsschimmel/Amtsschimmel.csproj
+          -c Release -r linux-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:Version=${{ steps.version.outputs.version }}
+          -o publish/linux-x64
+
+      - name: Archive erstellen
+        run: |
+          cd publish/win-x64 && zip -r ../../Amtsschimmel-${{ steps.version.outputs.version }}-win-x64.zip . && cd ../..
+          tar -czf Amtsschimmel-${{ steps.version.outputs.version }}-linux-x64.tar.gz -C publish/linux-x64 .
+
+      - name: GitHub Release erstellen
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Amtsschimmel v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            Amtsschimmel-${{ steps.version.outputs.version }}-win-x64.zip
+            Amtsschimmel-${{ steps.version.outputs.version }}-linux-x64.tar.gz

@@ -1,0 +1,102 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Amtsschimmel.slnx",
+                "-c", "Debug",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "build-release",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Amtsschimmel.slnx",
+                "-c", "Release",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/Amtsschimmel.Tests/Amtsschimmel.Tests.csproj",
+                "-c", "Release"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project", "${workspaceFolder}/Amtsschimmel/Amtsschimmel.csproj"
+            ],
+            "isBackground": true,
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "${workspaceFolder}/Amtsschimmel.slnx"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish-win-x64",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/Amtsschimmel/Amtsschimmel.csproj",
+                "-c", "Release",
+                "-r", "win-x64",
+                "--self-contained", "true",
+                "-p:PublishSingleFile=true",
+                "-o", "${workspaceFolder}/publish/win-x64"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish-linux-x64",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/Amtsschimmel/Amtsschimmel.csproj",
+                "-c", "Release",
+                "-r", "linux-x64",
+                "--self-contained", "true",
+                "-p:PublishSingleFile=true",
+                "-o", "${workspaceFolder}/publish/linux-x64"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

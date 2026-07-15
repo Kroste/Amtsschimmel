@@ -1,0 +1,200 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Amtsschimmel.ViewModels"
+        x:Class="Amtsschimmel.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Amtsschimmel — Das Behörden-Incremental"
+        Width="1100" Height="720"
+        MinWidth="900" MinHeight="600">
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="12">
+
+        <!-- Offline-Fortschritt-Banner -->
+        <Border Grid.Row="0" IsVisible="{Binding IsOfflineReportVisible}"
+                Background="#1E3A5F" CornerRadius="6" Padding="12" Margin="0,0,0,8">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="OK" Command="{Binding DismissOfflineReportCommand}" />
+                <TextBlock Text="{Binding OfflineReportText}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
+        <!-- Achievement-/Reform-Toast -->
+        <Border Grid.Row="1" IsVisible="{Binding IsToastVisible}"
+                Background="#2D5016" CornerRadius="6" Padding="12" Margin="0,0,0,8">
+            <TextBlock Text="{Binding ToastText}" TextWrapping="Wrap" FontWeight="SemiBold" />
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="320,12,*">
+
+            <!-- Linke Spalte: Stempeln + Upgrades -->
+            <Border Grid.Column="0" Background="#22262B" CornerRadius="8" Padding="16">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="🏛️ Dein Amt" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" />
+
+                    <StackPanel Spacing="2" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding StempelText}" FontSize="34" FontWeight="Bold"
+                                   HorizontalAlignment="Center" />
+                        <TextBlock Text="Stempel" Opacity="0.7" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding PerSecondText}" Opacity="0.7" HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <Button Command="{Binding StampCommand}"
+                            HorizontalAlignment="Stretch" Height="110"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            Background="#3A6EA5" CornerRadius="10">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="📋 STEMPELN" FontSize="22" FontWeight="Bold"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock HorizontalAlignment="Center" Opacity="0.85">
+                                <Run Text="+" /><Run Text="{Binding ClickPowerText}" /><Run Text=" pro Klick" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Button>
+
+                    <Border Background="#2A2F35" CornerRadius="6" Padding="10">
+                        <StackPanel Spacing="6">
+                            <TextBlock FontWeight="SemiBold">
+                                <Run Text="🖊️ Stempelkissen (Stufe " /><Run Text="{Binding ClickUpgradeLevel}" /><Run Text=")" />
+                            </TextBlock>
+                            <TextBlock Text="Verdoppelt die Klickkraft." Opacity="0.7" FontSize="12" />
+                            <Button Command="{Binding BuyClickUpgradeCommand}"
+                                    IsEnabled="{Binding CanBuyClickUpgrade}"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                <TextBlock>
+                                    <Run Text="Upgrade — " /><Run Text="{Binding ClickUpgradeCostText}" />
+                                </TextBlock>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#2A2F35" CornerRadius="6" Padding="10">
+                        <StackPanel Spacing="4">
+                            <TextBlock FontWeight="SemiBold" Text="Boni" />
+                            <TextBlock FontSize="12" Opacity="0.8">
+                                <Run Text="Paragraphen: " /><Run Text="{Binding Paragraphen}" /><Run Text=" § (je +5 %)" />
+                            </TextBlock>
+                            <TextBlock FontSize="12" Opacity="0.8">
+                                <Run Text="Erfolge: " /><Run Text="{Binding AchievementCountText}" /><Run Text=" (je +1 %)" />
+                            </TextBlock>
+                            <TextBlock FontSize="12" Opacity="0.8">
+                                <Run Text="Gesamt-Multiplikator: " /><Run Text="{Binding GlobalMultiplierText}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Rechte Spalte: Tabs -->
+            <TabControl Grid.Column="2">
+
+                <TabItem Header="🏢 Personal">
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding Generators}" Margin="0,8,8,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:GeneratorViewModel">
+                                    <Border Background="#22262B" CornerRadius="8" Padding="12" Margin="0,0,0,8"
+                                            IsVisible="{Binding IsVisible}">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel Grid.Column="0" Spacing="2">
+                                                <TextBlock FontWeight="Bold" FontSize="15">
+                                                    <Run Text="{Binding Name}" />
+                                                    <Run Text=" × " /><Run Text="{Binding Owned}" />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Description}" Opacity="0.65" FontSize="12"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Opacity="0.8" FontSize="12">
+                                                    <Run Text="Produziert " /><Run Text="{Binding ProductionText}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Spacing="6" MinWidth="200">
+                                                <Button Command="{Binding BuyCommand}" IsEnabled="{Binding CanBuy}"
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                                    <TextBlock>
+                                                        <Run Text="Kaufen — " /><Run Text="{Binding CostText}" />
+                                                    </TextBlock>
+                                                </Button>
+                                                <Button Command="{Binding Buy10Command}" IsEnabled="{Binding CanBuy10}"
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                                    <TextBlock>
+                                                        <Run Text="×10 — " /><Run Text="{Binding Cost10Text}" />
+                                                    </TextBlock>
+                                                </Button>
+                                                <Button Command="{Binding BuyAutoBuyerCommand}"
+                                                        IsEnabled="{Binding CanBuyAutoBuyer}"
+                                                        IsVisible="{Binding !AutoBuyerOwned}"
+                                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                                    <TextBlock FontSize="12">
+                                                        <Run Text="🤖 Auto-Buyer — " /><Run Text="{Binding AutoBuyerCostText}" />
+                                                    </TextBlock>
+                                                </Button>
+                                                <ToggleSwitch IsChecked="{Binding AutoBuyerEnabled}"
+                                                              IsVisible="{Binding AutoBuyerOwned}"
+                                                              OnContent="Auto-Kauf an" OffContent="Auto-Kauf aus"
+                                                              HorizontalAlignment="Right" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </TabItem>
+
+                <TabItem Header="📜 Reform">
+                    <StackPanel Spacing="16" Margin="16" MaxWidth="560" HorizontalAlignment="Left">
+                        <TextBlock Text="Verwaltungsreform" FontSize="22" FontWeight="Bold" />
+                        <TextBlock TextWrapping="Wrap" Opacity="0.85">
+                            Eine Verwaltungsreform setzt dein Amt komplett zurück: Stempel, Personal und
+                            Klick-Upgrades gehen verloren. Dafür erhältst du Paragraphen — jeder Paragraph
+                            steigert deine Produktion dauerhaft um 5 %. Gekaufte Auto-Buyer und Erfolge
+                            überstehen jede Reform.
+                        </TextBlock>
+                        <Border Background="#22262B" CornerRadius="8" Padding="16">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{Binding PrestigeProgressText}" FontWeight="SemiBold" />
+                                <TextBlock FontSize="12" Opacity="0.7">
+                                    <Run Text="Bisherige Reformen: " /><Run Text="{Binding TotalReformen}" />
+                                    <Run Text="   |   Paragraphen: " /><Run Text="{Binding Paragraphen}" /><Run Text=" §" />
+                                </TextBlock>
+                                <Button Command="{Binding PrestigeCommand}" IsEnabled="{Binding CanPrestige}"
+                                        Background="#8B4513" Height="48"
+                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                    <TextBlock FontWeight="Bold">
+                                        <Run Text="📜 Reform durchführen (+" /><Run Text="{Binding PendingParagraphen}" /><Run Text=" §)" />
+                                    </TextBlock>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.6">
+                            Formel: Paragraphen = ⌊√(verdiente Stempel / 1 Mio.)⌋. Mehr verdienen vor der
+                            Reform lohnt sich also — aber mit abnehmendem Grenzertrag, wie es sich für
+                            eine ordentliche Verwaltung gehört.
+                        </TextBlock>
+                    </StackPanel>
+                </TabItem>
+
+                <TabItem Header="🏆 Erfolge">
+                    <ScrollViewer>
+                        <ItemsControl ItemsSource="{Binding Achievements}" Margin="0,8,8,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:AchievementViewModel">
+                                    <Border Background="#22262B" CornerRadius="8" Padding="12" Margin="0,0,0,6">
+                                        <DockPanel>
+                                            <TextBlock DockPanel.Dock="Left" Width="36" FontSize="20"
+                                                       Text="{Binding IsUnlocked, Converter={x:Static vm:Converters.UnlockIcon}}" />
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding DisplayDescription}" Opacity="0.65" FontSize="12" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </TabItem>
+
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Amtsschimmel/Amtsschimmel.csproj" />
+  <Project Path="Amtsschimmel.Tests/Amtsschimmel.Tests.csproj" />
+</Solution>
