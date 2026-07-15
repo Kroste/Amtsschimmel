@@ -1,0 +1,38 @@
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Amtsschimmel.Views"
+        xmlns:vm="using:Amtsschimmel.ViewModels"
+        x:Class="Amtsschimmel.Views.InfoWindow"
+        x:DataType="vm:InfoViewModel"
+        Width="460" Height="340" MinWidth="380" MinHeight="300"
+        WindowStartupLocation="CenterOwner"
+        Title="Über Amtsschimmel">
+
+    <Border Background="#1A1D21">
+        <Grid RowDefinitions="Auto,*">
+            <!-- Eigene Titelleiste -->
+            <Border Grid.Row="0" Background="#2D2D30" Height="36"
+                    PointerPressed="OnTitleBarPointerPressed">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="Über Amtsschimmel" VerticalAlignment="Center"
+                               Margin="12,0" Foreground="White" />
+                    <Button Grid.Column="1" Content="✕" Click="OnCloseClick"
+                            Background="Transparent" BorderThickness="0" Width="42" Height="36"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Row="1" Margin="24" Spacing="10">
+                <TextBlock FontSize="22" FontWeight="Bold">
+                    <Run Text="🏛️ " /><Run Text="{Binding Name}" />
+                </TextBlock>
+                <TextBlock Text="{Binding VersionText}" Opacity="0.7" />
+                <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,10,0,0">
+                    <Button Content="GitHub" Command="{Binding OpenGitHubCommand}" />
+                    <Button Content="☕ Buy me a coffee" Command="{Binding OpenBuyMeACoffeeCommand}" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Border>
+</views:ChromeWindow>

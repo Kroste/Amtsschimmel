@@ -1,6 +1,9 @@
 using System.Collections.ObjectModel;
 using Amtsschimmel.Models;
 using Amtsschimmel.Services;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -193,6 +196,48 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [RelayCommand]
     private void Stamp() => _engine.Click();
+
+    // ---------- Fenster-Commands (eigene Titelleiste, Projektstandard) ----------
+
+    private static Window? MainWindow =>
+        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+    [RelayCommand]
+    private void ShowInfo()
+    {
+        var window = new Views.InfoWindow { DataContext = new InfoViewModel() };
+        if (MainWindow is { } owner)
+        {
+            window.ShowDialog(owner);
+        }
+        else
+        {
+            window.Show();
+        }
+    }
+
+    [RelayCommand]
+    private void Minimize()
+    {
+        if (MainWindow is { } window)
+        {
+            window.WindowState = WindowState.Minimized;
+        }
+    }
+
+    [RelayCommand]
+    private void Maximize()
+    {
+        if (MainWindow is { } window)
+        {
+            window.WindowState = window.WindowState == WindowState.Maximized
+                ? WindowState.Normal
+                : WindowState.Maximized;
+        }
+    }
+
+    [RelayCommand]
+    private void Close() => MainWindow?.Close();
 
     [RelayCommand]
     private void BuyClickUpgrade() => _engine.BuyClickUpgrade();

@@ -5,10 +5,11 @@
 - **Was:** Incremental/Idle-Game im deutschen Behörden-Setting. Währung: **Stempel**. Prestige-Währung: **Paragraphen (§)**.
 - **Stack:** C# / .NET 10 / Avalonia 12 (≥ 12.0.4), CommunityToolkit.Mvvm, Microsoft.Extensions.DependencyInjection, NLog, xUnit.
 - **Struktur:** Flache Projektstruktur (kein `src/`), `.slnx`-Solution, `Directory.Build.props` mit `TreatWarningsAsErrors`.
+- **UI-Rahmen (Projektstandard):** Alle Fenster erben von `Views/ChromeWindow` (`WindowDecorations.BorderOnly` — NICHT `None`, sonst fehlen native Resize-Griffe — plus `ExtendClientAreaToDecorationsHint`, `CanResize = true`, `Background = null` → Root-Border liefert Hintergrund). Eigene Titelleiste im MainWindow mit ⓘ Info / — / ☐ / ✕ (Commands im VM), Drag via `BeginMoveDrag`, Doppelklick = Maximieren. InfoBox (`Views/InfoWindow` + `InfoViewModel`): Name, Version aus `AssemblyInformationalVersion`, GitHub- und ☕-Buy-me-a-coffee-Button (URL-Öffnung: Avalonia-Launcher mit Prozess-Fallback). Platzhalter-URLs ggf. ersetzen.
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.3.0)
+## Aktueller Stand (v1.4.0)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
@@ -21,7 +22,7 @@
 - **Klick-Upgrade („Stempelkissen"):** Klickkraft = 2^Stufe, Kosten ×12 pro Stufe.
 - **Offline-Fortschritt:** 50 % Effizienz, Cap 8 h, Banner beim Start.
 - **Persistenz:** JSON-Savegame (atomares Schreiben via tmp+move), Autosave 30 s + bei Exit, korrupte Saves werden gesichert statt gelöscht.
-- **Tests:** 38 xUnit-Tests (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
+- **Tests:** 38 xUnit-Tests (Engine; UI-Rahmen ungetestet) (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
 
 ## Roadmap
 
@@ -30,6 +31,7 @@
 - Forschungsbaum ggf. visuell als Graph statt Liste darstellen.
 - Statistik-Tab (Lifetime-Werte, Diagramme).
 - System-Tray-Minimierung (Muster aus Checkmk Cockpit übernehmbar).
+- InfoWindow-URLs (GitHub-Repo, BMC-Handle) verifizieren.
 - Optional: Cloud-Save / Export-Import des Spielstands als Base64.
 
 ## Referenz

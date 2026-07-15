@@ -1,13 +1,45 @@
-<Window xmlns="https://github.com/avaloniaui"
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Amtsschimmel.Views"
         xmlns:vm="using:Amtsschimmel.ViewModels"
         x:Class="Amtsschimmel.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Amtsschimmel — Das Behörden-Incremental"
-        Width="1100" Height="720"
-        MinWidth="900" MinHeight="600">
+        Width="1100" Height="756"
+        MinWidth="900" MinHeight="620">
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="12">
+    <Border Background="#1A1D21">
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Eigene Titelleiste (Projektstandard, siehe DTM/Checkmk) -->
+        <Border Grid.Row="0" Background="#2D2D30" Height="36"
+                PointerPressed="OnTitleBarPointerPressed"
+                DoubleTapped="OnTitleBarDoubleTapped">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
+                            VerticalAlignment="Center" Margin="12,0">
+                    <TextBlock Text="🏛️" VerticalAlignment="Center" />
+                    <TextBlock Text="Amtsschimmel — Das Behörden-Incremental"
+                               VerticalAlignment="Center" Foreground="White" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="ⓘ Info" Command="{Binding ShowInfoCommand}"
+                            Background="Transparent" BorderThickness="0" Height="36"
+                            VerticalContentAlignment="Center" />
+                    <Button Content="—" Command="{Binding MinimizeCommand}"
+                            Background="Transparent" BorderThickness="0" Width="42" Height="36"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    <Button Content="☐" Command="{Binding MaximizeCommand}"
+                            Background="Transparent" BorderThickness="0" Width="42" Height="36"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                    <Button Content="✕" Command="{Binding CloseCommand}"
+                            Background="Transparent" BorderThickness="0" Width="42" Height="36"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    <Grid Grid.Row="1" RowDefinitions="Auto,Auto,*" Margin="12">
 
         <!-- Offline-Fortschritt-Banner -->
         <Border Grid.Row="0" IsVisible="{Binding IsOfflineReportVisible}"
@@ -250,4 +282,6 @@
             </TabControl>
         </Grid>
     </Grid>
-</Window>
+    </Grid>
+    </Border>
+</views:ChromeWindow>
