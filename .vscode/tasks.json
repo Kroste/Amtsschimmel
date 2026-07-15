@@ -8,7 +8,8 @@
             "args": [
                 "build",
                 "${workspaceFolder}/Amtsschimmel.slnx",
-                "-c", "Debug",
+                "-c",
+                "Debug",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -25,7 +26,8 @@
             "args": [
                 "build",
                 "${workspaceFolder}/Amtsschimmel.slnx",
-                "-c", "Release",
+                "-c",
+                "Release",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -38,7 +40,8 @@
             "args": [
                 "test",
                 "${workspaceFolder}/Amtsschimmel.Tests/Amtsschimmel.Tests.csproj",
-                "-c", "Release"
+                "-c",
+                "Release"
             ],
             "problemMatcher": "$msCompile",
             "group": {
@@ -53,7 +56,8 @@
             "args": [
                 "watch",
                 "run",
-                "--project", "${workspaceFolder}/Amtsschimmel/Amtsschimmel.csproj"
+                "--project",
+                "${workspaceFolder}/Amtsschimmel/Amtsschimmel.csproj"
             ],
             "isBackground": true,
             "problemMatcher": "$msCompile"
@@ -75,11 +79,15 @@
             "args": [
                 "publish",
                 "${workspaceFolder}/Amtsschimmel/Amtsschimmel.csproj",
-                "-c", "Release",
-                "-r", "win-x64",
-                "--self-contained", "true",
+                "-c",
+                "Release",
+                "-r",
+                "win-x64",
+                "--self-contained",
+                "true",
                 "-p:PublishSingleFile=true",
-                "-o", "${workspaceFolder}/publish/win-x64"
+                "-o",
+                "${workspaceFolder}/publish/win-x64"
             ],
             "problemMatcher": "$msCompile"
         },
@@ -90,13 +98,57 @@
             "args": [
                 "publish",
                 "${workspaceFolder}/Amtsschimmel/Amtsschimmel.csproj",
-                "-c", "Release",
-                "-r", "linux-x64",
-                "--self-contained", "true",
+                "-c",
+                "Release",
+                "-r",
+                "linux-x64",
+                "--self-contained",
+                "true",
                 "-p:PublishSingleFile=true",
-                "-o", "${workspaceFolder}/publish/linux-x64"
+                "-o",
+                "${workspaceFolder}/publish/linux-x64"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "release (tag + push)",
+            "type": "shell",
+            "problemMatcher": [],
+            "linux": {
+                "command": "bash '${workspaceFolder}/scripts/release.sh'"
+            },
+            "osx": {
+                "command": "bash '${workspaceFolder}/scripts/release.sh'"
+            },
+            "windows": {
+                "command": "pwsh -NoProfile -File '${workspaceFolder}/scripts/release.ps1'"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "clean-hard",
+            "type": "shell",
+            "problemMatcher": [],
+            "linux": {
+                "command": "find '${workspaceFolder}' -type d \\( -name bin -o -name obj \\) -prune -exec rm -rf '{}' +"
+            },
+            "osx": {
+                "command": "find '${workspaceFolder}' -type d \\( -name bin -o -name obj \\) -prune -exec rm -rf '{}' +"
+            },
+            "windows": {
+                "command": "Get-ChildItem -Path '${workspaceFolder}' -Recurse -Directory -Include bin,obj | Remove-Item -Recurse -Force",
+                "options": {
+                    "shell": {
+                        "executable": "powershell.exe",
+                        "args": [
+                            "-NoProfile",
+                            "-Command"
+                        ]
+                    }
+                }
+            }
         }
     ]
 }
