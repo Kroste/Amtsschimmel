@@ -26,7 +26,7 @@ public sealed class GameEngine
     public event Action<AchievementDefinition>? AchievementUnlocked;
 
     /// <summary>Wird gefeuert, wenn ein Generator eine Meilenstein-Schwelle überschreitet.</summary>
-    public event Action<GeneratorDefinition, int>? MilestoneReached;
+    public event Action<GeneratorDefinition, long>? MilestoneReached;
 
     // ---------- Temporärer Produktions-Buff (Goldene Formulare) ----------
 
@@ -67,26 +67,19 @@ public sealed class GameEngine
 
     // ---------- Meilensteine ("Beförderungen") ----------
 
-    /// <summary>×2 je erreichter Bestands-Schwelle (10/25/50/100/150/200).</summary>
+    /// <summary>×2 je erreichter Meilenstein-Schwelle (endlose Folge 10/25/50/100/250/…).</summary>
     public double MilestoneMultiplierFor(string generatorId)
     {
         var owned = State.GetGenerator(generatorId).Owned;
-        var reached = GameDefinitions.MilestoneThresholds.Count(t => owned >= t);
+        var reached = GameDefinitions.MilestoneSequence().TakeWhile(t => t <= owned).Count();
         return Math.Pow(2, reached);
     }
 
-    /// <summary>Nächste noch nicht erreichte Meilenstein-Schwelle, oder null.</summary>
-    public int? NextMilestoneFor(string generatorId)
+    /// <summary>Nächste noch nicht erreichte Meilenstein-Schwelle (Folge ist endlos).</summary>
+    public long NextMilestoneFor(string generatorId)
     {
         var owned = State.GetGenerator(generatorId).Owned;
-        foreach (var threshold in GameDefinitions.MilestoneThresholds)
-        {
-            if (owned < threshold)
-            {
-                return threshold;
-            }
-        }
-        return null;
+        return GameDefinitions.MilestoneSequence().First(t => t > owned);
     }
 
     public void LoadState(GameState state)
@@ -290,13 +283,12 @@ public sealed class GameEngine
         var before = gen.Owned;
         gen.Owned += amount;
         Log.Debug("Gekauft: {Amount}x {Name} für {Cost:0} Stempel", amount, def.Name, cost);
-        foreach (var threshold in GameDefinitions.MilestoneThresholds)
+        foreach (var threshold in GameDefinitions.MilestoneSequence()
+                     .SkipWhile(t => t <= before)
+                     .TakeWhile(t => t <= gen.Owned))
         {
-            if (before < threshold && gen.Owned >= threshold)
-            {
-                Log.Info("Meilenstein: {Name} erreicht {Threshold} Einheiten (×2)", def.Name, threshold);
-                MilestoneReached?.Invoke(def, threshold);
-            }
+            Log.Info("Meilenstein: {Name} erreicht {Threshold} Einheiten (×2)", def.Name, threshold);
+            MilestoneReached?.Invoke(def, threshold);
         }
         return true;
     }

@@ -33,8 +33,19 @@ public sealed record AchievementDefinition(
 /// <summary>Zentrale statische Spieldaten.</summary>
 public static class GameDefinitions
 {
-    /// <summary>Bestands-Schwellen, ab denen ein Generator je ×2 Produktion erhält ("Beförderung").</summary>
-    public static readonly int[] MilestoneThresholds = [10, 25, 50, 100, 150, 200];
+    /// <summary>
+    /// Endlose Meilenstein-Folge im 1-2,5-5-Dekadenmuster: 10, 25, 50, 100, 250, 500,
+    /// 1.000, 2.500, 5.000, … — jede erreichte Schwelle verdoppelt die Produktion des Generators.
+    /// </summary>
+    public static IEnumerable<long> MilestoneSequence()
+    {
+        for (var magnitude = 10L; magnitude < long.MaxValue / 10; magnitude *= 10)
+        {
+            yield return magnitude;
+            yield return (long)(magnitude * 2.5);
+            yield return magnitude * 5;
+        }
+    }
 
     public static readonly IReadOnlyList<GeneratorDefinition> Generators =
     [

@@ -20,10 +20,12 @@ public sealed class JuiceFeatureTests
         Assert.Equal(1, engine.MilestoneMultiplierFor(Praktikant.Id));
         gen.Owned = 10;
         Assert.Equal(2, engine.MilestoneMultiplierFor(Praktikant.Id));
-        gen.Owned = 50;  // 10, 25, 50 erreicht
+        gen.Owned = 50;   // 10, 25, 50 erreicht
         Assert.Equal(8, engine.MilestoneMultiplierFor(Praktikant.Id));
-        gen.Owned = 200; // alle 6 Schwellen
-        Assert.Equal(64, engine.MilestoneMultiplierFor(Praktikant.Id));
+        gen.Owned = 200;  // 10, 25, 50, 100
+        Assert.Equal(16, engine.MilestoneMultiplierFor(Praktikant.Id));
+        gen.Owned = 1000; // + 250, 500, 1000 → 7 Schwellen (endlose Folge!)
+        Assert.Equal(128, engine.MilestoneMultiplierFor(Praktikant.Id));
     }
 
     [Fact]
@@ -33,16 +35,16 @@ public sealed class JuiceFeatureTests
         engine.State.Stempel = 1e9;
         engine.State.GetGenerator(Praktikant.Id).Owned = 8;
 
-        var reached = new List<int>();
+        var reached = new List<long>();
         engine.MilestoneReached += (_, threshold) => reached.Add(threshold);
 
         engine.BuyGenerator(Praktikant, 20); // 8 → 28: überschreitet 10 UND 25
 
-        Assert.Equal([10, 25], reached);
+        Assert.Equal([10L, 25L], reached);
     }
 
     [Fact]
-    public void NextMilestone_LiefertNaechsteSchwelleOderNull()
+    public void NextMilestone_FolgeIstEndlos()
     {
         var engine = new GameEngine();
         var gen = engine.State.GetGenerator(Praktikant.Id);
@@ -50,7 +52,9 @@ public sealed class JuiceFeatureTests
         gen.Owned = 60;
         Assert.Equal(100, engine.NextMilestoneFor(Praktikant.Id));
         gen.Owned = 200;
-        Assert.Null(engine.NextMilestoneFor(Praktikant.Id));
+        Assert.Equal(250, engine.NextMilestoneFor(Praktikant.Id));
+        gen.Owned = 5_000;
+        Assert.Equal(10_000, engine.NextMilestoneFor(Praktikant.Id));
     }
 
     // ---------- Buff (Goldene Formulare) ----------

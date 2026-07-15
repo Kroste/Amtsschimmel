@@ -6,13 +6,18 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.Threading;
 
 namespace Amtsschimmel.Views;
 
 public sealed partial class MainWindow : ChromeWindow
 {
     private static readonly Random Rng = new();
-    private static readonly IBrush ParticleBrush = new SolidColorBrush(Color.Parse("#8FD4A8"));
+    private static readonly IBrush ManualParticleBrush = new SolidColorBrush(Color.Parse("#8FD4A8"));
+    private static readonly IBrush AutoParticleBrush = new SolidColorBrush(Color.Parse("#9FB7D9"));
+
+    private readonly DispatcherTimer _autoStampTimer;
+    private double _autoParticleAccumulator;
 
     public MainWindow()
     {
@@ -24,6 +29,15 @@ public sealed partial class MainWindow : ChromeWindow
                 vm.PropertyChanged += OnViewModelPropertyChanged;
             }
         };
+        // Partikel für den Stempelautomaten: 4×/s prüfen, Rate über Akkumulator abbilden.
+        _autoStampTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(250), DispatcherPriority.Background, OnAutoStampTimer);
+        _autoStampTimer.Start();
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _autoStampTimer.Stop();
+        base.OnClosed(e);
     }
 
     /// <summary>Positioniert das Goldene Formular zufällig, sobald es erscheint.</summary>
@@ -53,28 +67,46 @@ public sealed partial class MainWindow : ChromeWindow
             ? WindowState.Normal
             : WindowState.Maximized;
 
-    /// <summary>
-    /// Klick-Feedback: lässt ein "+X" vom Stempel-Button aufsteigen und verblassen.
-    /// Läuft zusätzlich zum StampCommand (Command bucht die Stempel, Click nur die Optik).
-    /// </summary>
-    private async void OnStampClick(object? sender, RoutedEventArgs e)
+    /// <summary>Klick-Feedback: "+X" steigt vom Stempel-Button auf (Command bucht, Click animiert).</summary>
+    private void OnStampClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainWindowViewModel vm)
+        if (DataContext is MainWindowViewModel vm)
         {
+            SpawnParticle("+" + vm.ClickPowerText, ManualParticleBrush);
+        }
+    }
+
+    /// <summary>Der Stempelautomat stempelt sichtbar mit: Partikel gemäß Auto-Klick-Rate (max. 4/s).</summary>
+    private void OnAutoStampTimer(object? sender, EventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || vm.AutoClicksPerSecondValue <= 0
+            || WindowState == WindowState.Minimized)
+        {
+            _autoParticleAccumulator = 0;
             return;
         }
+        _autoParticleAccumulator += Math.Min(vm.AutoClicksPerSecondValue, 4) * 0.25;
+        while (_autoParticleAccumulator >= 1)
+        {
+            _autoParticleAccumulator -= 1;
+            SpawnParticle(vm.AutoParticleText, AutoParticleBrush);
+        }
+    }
+
+    private async void SpawnParticle(string text, IBrush brush)
+    {
         var canvas = ClickParticleCanvas;
-        if (canvas.Children.Count > 30) // Spam-Schutz bei Dauerklicken
+        if (canvas.Bounds.Width <= 0 || canvas.Children.Count > 30) // Spam-Schutz
         {
             return;
         }
 
         var label = new TextBlock
         {
-            Text = "+" + vm.ClickPowerText,
+            Text = text,
             FontWeight = FontWeight.Bold,
             FontSize = 18,
-            Foreground = ParticleBrush,
+            Foreground = brush,
             IsHitTestVisible = false,
         };
 

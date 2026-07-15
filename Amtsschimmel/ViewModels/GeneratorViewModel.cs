@@ -88,8 +88,8 @@ public sealed partial class GeneratorViewModel : ObservableObject
         ProductionText = NumberFormatter.Format(_engine.ProductionPerSecond(Definition)) + "/s";
         var milestoneFactor = _engine.MilestoneMultiplierFor(Definition.Id);
         var next = _engine.NextMilestoneFor(Definition.Id);
-        MilestoneText = (milestoneFactor > 1 ? $"🏅 ×{milestoneFactor:0} " : "")
-            + (next is { } n ? $"(nächste Beförderung: {n})" : "(max. befördert)");
+        MilestoneText = (milestoneFactor > 1 ? $"🏅 ×{NumberFormatter.Format(milestoneFactor)} " : "")
+            + $"(nächste Beförderung: {NumberFormatter.Format(next)})";
 
         // Sichtbar ab: schon gekauft ODER 40 % der Basiskosten erspielt.
         if (!IsVisible && (state.Owned > 0 || _engine.State.TotalEarnedThisRun >= Definition.BaseCost * 0.4))

@@ -71,6 +71,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isGoldenFormVisible;
 
+    /// <summary>Auto-Klicks/s als Zahl (für die Partikel-Animation im Code-Behind).</summary>
+    [ObservableProperty]
+    private double _autoClicksPerSecondValue;
+
+    /// <summary>Betrag pro Auto-Partikel (bei hoher Rate aggregiert, damit die Summe stimmt).</summary>
+    [ObservableProperty]
+    private string _autoParticleText = "";
+
     // ---- Statuszeile ----
     [ObservableProperty]
     private string _tickerText = "Amtsblatt wird zugestellt …";
@@ -220,6 +228,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var autoClicks = _engine.AutoClicksPerSecond;
         IsAutoClickVisible = autoClicks > 0;
         AutoClickText = $"🤖 Stempelautomat: {autoClicks:0.#}×/s (+{NumberFormatter.Format(_engine.ClickPower * autoClicks)}/s)";
+        AutoClicksPerSecondValue = autoClicks;
+        if (autoClicks > 0)
+        {
+            // Visuell max. 4 Partikel/s; jedes Partikel trägt den anteiligen Gesamtbetrag.
+            var visualRate = Math.Min(autoClicks, 4);
+            AutoParticleText = "+" + NumberFormatter.Format(_engine.ClickPower * autoClicks / visualRate);
+        }
         ClickPowerText = NumberFormatter.Format(_engine.ClickPower);
         ClickUpgradeCostText = NumberFormatter.Format(_engine.ClickUpgradeCost);
         CanBuyClickUpgrade = _engine.CanAfford(_engine.ClickUpgradeCost);
@@ -287,7 +302,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private void OnAchievementUnlocked(AchievementDefinition achievement) =>
         ShowToast($"🏆 {achievement.Name} — {achievement.Description} (+1 % Produktion)");
 
-    private void OnMilestoneReached(GeneratorDefinition def, int threshold) =>
+    private void OnMilestoneReached(GeneratorDefinition def, long threshold) =>
         ShowToast($"🏅 Beförderung! {threshold}× {def.Name} — Produktion des Typs verdoppelt!");
 
     private void ShowToast(string text)
