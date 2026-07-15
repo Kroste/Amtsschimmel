@@ -9,7 +9,7 @@
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.4.0)
+## Aktueller Stand (v1.4.1)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
@@ -39,6 +39,7 @@
 - **Kostenformel:** `cost = base × 1.15^owned`; Bulk: geometrische Reihe.
 - **Produktionsformel:** `baseProd × owned × (1 + §×0.05) × (1 + achievements×0.01)`.
 - **Forschung:** `Models/ResearchDefinitions.cs` (Baum) + Effektauswertung in `GameEngine` (`ResearchMultiplierFor`, `CostFactor`, `OfflineEfficiency`, `OfflineCap`, `ParagraphMultiplier`). Levels in `GameState.ResearchLevels` (Dictionary Id→Level); altes `ResearchedIds`-Set (≤ v1.1.0) wird in `GameEngine.LoadState` migriert und darf nicht entfernt werden, solange alte Saves existieren können. Neue Effekttypen im Enum `ResearchEffectType` ergänzen.
+- **Farb-Emojis:** `Program.BuildAvaloniaApp` registriert einen expliziten `FontFallback` auf den System-Emoji-Font (Windows: Segoe UI Emoji, Linux: Noto Color Emoji, macOS: Apple Color Emoji). Achtung: das `.With(new FontManagerOptions…)` ersetzt die Options von `WithInterFont()`, deshalb muss `DefaultFamilyName = "fonts:Inter#Inter"` dort erneut gesetzt werden. Unter Linux muss Noto Color Emoji installiert sein (Bazzite: vorhanden).
 - **Engine ist UI-frei** (`Services/GameEngine.cs`) — alle Logikänderungen dort, ViewModels nur Anzeige/Commands.
 - Zahlformatierung: `NumberFormatter` (deutsche Suffixe Tsd./Mio./Mrd./Bio./Brd./Trill., ab 1e21 wissenschaftlich).
 - Version in `Directory.Build.props` bei jeder Änderung erhöhen.

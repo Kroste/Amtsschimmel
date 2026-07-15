@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Media;
 using NLog;
 
 namespace Amtsschimmel;
@@ -36,10 +37,29 @@ internal static class Program
     }
 
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        // Farb-Emojis (🏢 📚 📜 🏆 …) brauchen einen expliziten Fallback auf den
+        // Color-Emoji-Font des Systems. Ohne diesen kann der Font-Fallback in einem
+        // monochromen Font landen — die Piktogramme erscheinen dann einfarbig.
+        var emojiFont = OperatingSystem.IsWindows() ? "Segoe UI Emoji"
+            : OperatingSystem.IsMacOS() ? "Apple Color Emoji"
+            : "Noto Color Emoji";
+
+        return AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
+            .With(new FontManagerOptions
+            {
+                // WithInterFont() setzt die Default-Familie über FontManagerOptions;
+                // da wir die Options hier ersetzen, muss Inter erneut angegeben werden.
+                DefaultFamilyName = "fonts:Inter#Inter",
+                FontFallbacks =
+                [
+                    new FontFallback { FontFamily = new FontFamily(emojiFont) },
+                ],
+            })
             .LogToTrace();
+    }
 
     private static void ConfigureLogging()
     {
