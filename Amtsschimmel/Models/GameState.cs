@@ -32,6 +32,9 @@ public sealed class GameState
     /// <summary>Ids der freigeschalteten Achievements.</summary>
     public HashSet<string> UnlockedAchievements { get; set; } = new();
 
+    /// <summary>Ids der abgeschlossenen Fortbildungen (verfallen bei Reformen).</summary>
+    public HashSet<string> ResearchedIds { get; set; } = new();
+
     /// <summary>Zeitpunkt des letzten Speicherns (UTC) — Basis für Offline-Fortschritt.</summary>
     public DateTime LastSavedUtc { get; set; } = DateTime.UtcNow;
 

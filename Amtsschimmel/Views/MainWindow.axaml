@@ -140,14 +140,58 @@
                     </ScrollViewer>
                 </TabItem>
 
+                <TabItem Header="📚 Akademie">
+                    <ScrollViewer>
+                        <StackPanel Margin="0,8,8,0">
+                            <TextBlock Margin="4,0,0,8" Opacity="0.7" FontSize="12" TextWrapping="Wrap">
+                                <Run Text="Verwaltungsakademie — Fortbildungen verbessern dein Amt dauerhaft, verfallen aber bei einer Reform. Abgeschlossen: " /><Run Text="{Binding ResearchCountText}" />
+                            </TextBlock>
+                            <ItemsControl ItemsSource="{Binding Research}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ResearchViewModel">
+                                        <Border Background="#22262B" CornerRadius="8" Padding="12" Margin="0,0,0,8">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <StackPanel Grid.Column="0" Spacing="2">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <TextBlock Text="✅" IsVisible="{Binding IsResearched}" />
+                                                        <TextBlock Text="🔒" IsVisible="{Binding IsLocked}" Opacity="0.6" />
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15" />
+                                                    </StackPanel>
+                                                    <TextBlock Text="{Binding Description}" Opacity="0.65" FontSize="12"
+                                                               TextWrapping="Wrap" />
+                                                    <TextBlock Text="{Binding EffectText}" FontSize="12"
+                                                               Foreground="#7EC8A4" />
+                                                    <TextBlock Text="{Binding PrerequisiteText}" FontSize="11"
+                                                               Opacity="0.55" IsVisible="{Binding HasPrerequisites}" />
+                                                </StackPanel>
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="180">
+                                                    <Button Command="{Binding BuyCommand}" IsEnabled="{Binding CanResearch}"
+                                                            IsVisible="{Binding !IsResearched}"
+                                                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                                        <TextBlock>
+                                                            <Run Text="Fortbilden — " /><Run Text="{Binding CostText}" />
+                                                        </TextBlock>
+                                                    </Button>
+                                                    <TextBlock Text="Abgeschlossen" IsVisible="{Binding IsResearched}"
+                                                               Opacity="0.6" HorizontalAlignment="Center" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
                 <TabItem Header="📜 Reform">
                     <StackPanel Spacing="16" Margin="16" MaxWidth="560" HorizontalAlignment="Left">
                         <TextBlock Text="Verwaltungsreform" FontSize="22" FontWeight="Bold" />
                         <TextBlock TextWrapping="Wrap" Opacity="0.85">
-                            Eine Verwaltungsreform setzt dein Amt komplett zurück: Stempel, Personal und
-                            Klick-Upgrades gehen verloren. Dafür erhältst du Paragraphen — jeder Paragraph
-                            steigert deine Produktion dauerhaft um 5 %. Gekaufte Auto-Buyer und Erfolge
-                            überstehen jede Reform.
+                            Eine Verwaltungsreform setzt dein Amt komplett zurück: Stempel, Personal,
+                            Klick-Upgrades und alle Fortbildungen der Akademie gehen verloren. Dafür
+                            erhältst du Paragraphen — jeder Paragraph steigert deine Produktion dauerhaft
+                            um 5 %. Gekaufte Auto-Buyer und Erfolge überstehen jede Reform.
                         </TextBlock>
                         <Border Background="#22262B" CornerRadius="8" Padding="16">
                             <StackPanel Spacing="8">

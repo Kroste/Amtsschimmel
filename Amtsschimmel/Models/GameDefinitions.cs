@@ -63,6 +63,8 @@ public static class GameDefinitions
         new("auto_all",      "Vollautomatisiert",     "Kaufe alle Auto-Buyer.",                        s => GameDefinitions.Generators.All(g => s.GetGenerator(g.Id).AutoBuyerOwned)),
         new("reform_first",  "Verwaltungsreform",     "Führe deine erste Reform durch.",               s => s.TotalReformen >= 1),
         new("reform_5",      "Reformstau gelöst",     "5 Verwaltungsreformen durchgeführt.",           s => s.TotalReformen >= 5),
+        new("research_first","Bildungsauftrag",       "Schließe deine erste Fortbildung ab.",          s => s.ResearchedIds.Count >= 1),
+        new("research_all",  "Summa cum laude",       "Erforsche die komplette Verwaltungsakademie.",  s => ResearchDefinitions.All.All(r => s.ResearchedIds.Contains(r.Id))),
         new("para_100",      "Grundgesetz 2.0",       "Sammle 100 Paragraphen.",                       s => s.Paragraphen >= 100),
         new("click_lvl_5",   "Turbo-Stempelkissen",   "Klick-Upgrade auf Stufe 5.",                    s => s.ClickUpgradeLevel >= 5),
     ];

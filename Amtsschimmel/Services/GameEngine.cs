@@ -4,8 +4,8 @@ using NLog;
 namespace Amtsschimmel.Services;
 
 /// <summary>
-/// UI-unabhängige Spiellogik: Produktion, Käufe, Prestige, Auto-Buyer, Offline-Fortschritt.
-/// Wird vom ViewModel per Timer getickt.
+/// UI-unabhängige Spiellogik: Produktion, Käufe, Forschung, Prestige,
+/// Auto-Buyer, Offline-Fortschritt. Wird vom ViewModel per Timer getickt.
 /// </summary>
 public sealed class GameEngine
 {
@@ -14,11 +14,8 @@ public sealed class GameEngine
     /// <summary>Prestige wird ab dieser Summe verdienter Stempel möglich.</summary>
     public const double PrestigeThreshold = 1e6;
 
-    /// <summary>Offline-Fortschritt: maximal angerechnete Abwesenheit.</summary>
-    public static readonly TimeSpan OfflineCap = TimeSpan.FromHours(8);
-
-    /// <summary>Offline-Fortschritt: Effizienzfaktor gegenüber Online-Produktion.</summary>
-    public const double OfflineEfficiency = 0.5;
+    private static readonly TimeSpan BaseOfflineCap = TimeSpan.FromHours(8);
+    private const double BaseOfflineEfficiency = 0.5;
 
     public GameState State { get; private set; } = new();
 
@@ -27,25 +24,106 @@ public sealed class GameEngine
 
     public void LoadState(GameState state) => State = state;
 
+    // ---------- Forschung (Verwaltungsakademie) ----------
+
+    private IEnumerable<ResearchDefinition> ActiveResearch =>
+        ResearchDefinitions.All.Where(r => State.ResearchedIds.Contains(r.Id));
+
+    public bool IsResearched(ResearchDefinition def) => State.ResearchedIds.Contains(def.Id);
+
+    /// <summary>Alle Voraussetzungen einer Fortbildung erfüllt?</summary>
+    public bool PrerequisitesMet(ResearchDefinition def) =>
+        (def.Prerequisites ?? []).All(State.ResearchedIds.Contains);
+
+    public bool CanResearch(ResearchDefinition def) =>
+        !IsResearched(def) && PrerequisitesMet(def) && CanAfford(def.Cost);
+
+    public bool BuyResearch(ResearchDefinition def)
+    {
+        if (!CanResearch(def))
+        {
+            return false;
+        }
+        State.Stempel -= def.Cost;
+        State.ResearchedIds.Add(def.Id);
+        Log.Info("Fortbildung abgeschlossen: {Name} ({Effect})", def.Name, def.EffectText);
+        return true;
+    }
+
+    /// <summary>Forschungs-Multiplikator für einen konkreten Generator.</summary>
+    public double ResearchMultiplierFor(string generatorId)
+    {
+        var factor = 1.0;
+        foreach (var research in ActiveResearch)
+        {
+            factor *= research.EffectType switch
+            {
+                ResearchEffectType.AllGeneratorsMultiplier => research.Value,
+                ResearchEffectType.GeneratorMultiplier
+                    when research.TargetGeneratorIds?.Contains(generatorId) == true => research.Value,
+                _ => 1.0,
+            };
+        }
+        return factor;
+    }
+
+    private double ResearchClickMultiplier => ActiveResearch
+        .Where(r => r.EffectType == ResearchEffectType.ClickMultiplier)
+        .Aggregate(1.0, (acc, r) => acc * r.Value);
+
+    /// <summary>Kostenfaktor aus Rabatt-Fortbildungen (multiplikativ, z. B. 0,95 × 0,90).</summary>
+    public double CostFactor => ActiveResearch
+        .Where(r => r.EffectType == ResearchEffectType.CostReduction)
+        .Aggregate(1.0, (acc, r) => acc * (1.0 - r.Value));
+
+    /// <summary>Aktuelle Offline-Effizienz (Basis 50 %, per Forschung erhöhbar).</summary>
+    public double OfflineEfficiency => ActiveResearch
+        .Where(r => r.EffectType == ResearchEffectType.OfflineEfficiency)
+        .Select(r => r.Value)
+        .DefaultIfEmpty(BaseOfflineEfficiency)
+        .Max();
+
+    /// <summary>Aktuelles Offline-Cap (Basis 8 h, per Forschung erhöhbar).</summary>
+    public TimeSpan OfflineCap => TimeSpan.FromHours(ActiveResearch
+        .Where(r => r.EffectType == ResearchEffectType.OfflineCapHours)
+        .Select(r => r.Value)
+        .DefaultIfEmpty(BaseOfflineCap.TotalHours)
+        .Max());
+
+    /// <summary>Multiplikator auf den Paragraphen-Ertrag bei Reformen.</summary>
+    public double ParagraphMultiplier => ActiveResearch
+        .Where(r => r.EffectType == ResearchEffectType.ParagraphBonus)
+        .Aggregate(1.0, (acc, r) => acc * (1.0 + r.Value));
+
     // ---------- Produktion ----------
 
     /// <summary>Globaler Multiplikator aus Paragraphen (+5 % je) und Achievements (+1 % je).</summary>
     public double GlobalMultiplier =>
         (1.0 + State.Paragraphen * 0.05) * (1.0 + State.UnlockedAchievements.Count * 0.01);
 
-    /// <summary>Produktion eines einzelnen Generators pro Sekunde (inkl. Multiplikatoren).</summary>
+    /// <summary>Produktion eines einzelnen Generators pro Sekunde (inkl. aller Multiplikatoren).</summary>
     public double ProductionPerSecond(GeneratorDefinition def) =>
-        def.BaseProduction * State.GetGenerator(def.Id).Owned * GlobalMultiplier;
+        def.BaseProduction * State.GetGenerator(def.Id).Owned
+        * GlobalMultiplier * ResearchMultiplierFor(def.Id);
 
     /// <summary>Gesamtproduktion pro Sekunde.</summary>
     public double TotalProductionPerSecond() =>
         GameDefinitions.Generators.Sum(ProductionPerSecond);
 
-    /// <summary>Klickkraft: 2^Upgrade-Stufe, skaliert mit globalem Multiplikator.</summary>
-    public double ClickPower => Math.Pow(2, State.ClickUpgradeLevel) * GlobalMultiplier;
+    /// <summary>Klickkraft: 2^Upgrade-Stufe × globaler Multiplikator × Klick-Forschung.</summary>
+    public double ClickPower =>
+        Math.Pow(2, State.ClickUpgradeLevel) * GlobalMultiplier * ResearchClickMultiplier;
 
     /// <summary>Kosten des nächsten Klick-Upgrades ("Stempelkissen").</summary>
     public double ClickUpgradeCost => 100 * Math.Pow(12, State.ClickUpgradeLevel);
+
+    // ---------- Effektive Kosten (inkl. Forschungsrabatte) ----------
+
+    public double NextCost(GeneratorDefinition def) =>
+        def.CostFor(State.GetGenerator(def.Id).Owned) * CostFactor;
+
+    public double BulkCost(GeneratorDefinition def, int amount) =>
+        def.CostForBulk(State.GetGenerator(def.Id).Owned, amount) * CostFactor;
 
     // ---------- Tick ----------
 
@@ -82,7 +160,7 @@ public sealed class GameEngine
     public bool BuyGenerator(GeneratorDefinition def, int amount = 1)
     {
         var gen = State.GetGenerator(def.Id);
-        var cost = def.CostForBulk(gen.Owned, amount);
+        var cost = BulkCost(def, amount);
         if (!CanAfford(cost))
         {
             return false;
@@ -125,7 +203,7 @@ public sealed class GameEngine
         foreach (var def in GameDefinitions.Generators)
         {
             var gen = State.GetGenerator(def.Id);
-            if (gen.AutoBuyerOwned && gen.AutoBuyerEnabled && CanAfford(def.CostFor(gen.Owned)))
+            if (gen.AutoBuyerOwned && gen.AutoBuyerEnabled && CanAfford(NextCost(def)))
             {
                 BuyGenerator(def);
             }
@@ -134,16 +212,16 @@ public sealed class GameEngine
 
     // ---------- Prestige ----------
 
-    /// <summary>Paragraphen, die eine Reform jetzt einbringen würde.</summary>
+    /// <summary>Paragraphen, die eine Reform jetzt einbringen würde (inkl. Forschungsbonus).</summary>
     public int PendingParagraphen =>
         State.TotalEarnedThisRun < PrestigeThreshold
             ? 0
-            : (int)Math.Floor(Math.Sqrt(State.TotalEarnedThisRun / PrestigeThreshold));
+            : (int)Math.Floor(Math.Sqrt(State.TotalEarnedThisRun / PrestigeThreshold) * ParagraphMultiplier);
 
     public bool CanPrestige => PendingParagraphen > 0;
 
     /// <summary>
-    /// Verwaltungsreform: setzt Stempel, Generatoren und Klick-Upgrade zurück,
+    /// Verwaltungsreform: setzt Stempel, Generatoren, Klick-Upgrade und Forschung zurück,
     /// gewährt Paragraphen. Achievements und Auto-Buyer-Besitz bleiben erhalten.
     /// </summary>
     public int Prestige()
@@ -159,6 +237,7 @@ public sealed class GameEngine
         State.Stempel = 0;
         State.TotalEarnedThisRun = 0;
         State.ClickUpgradeLevel = 0;
+        State.ResearchedIds.Clear(); // Die Reform reformiert auch die Fortbildungslandschaft.
         foreach (var gen in State.Generators.Values)
         {
             gen.Owned = 0;
@@ -183,7 +262,8 @@ public sealed class GameEngine
             return null;
         }
 
-        var counted = elapsed > OfflineCap ? OfflineCap : elapsed;
+        var cap = OfflineCap;
+        var counted = elapsed > cap ? cap : elapsed;
         var earned = TotalProductionPerSecond() * counted.TotalSeconds * OfflineEfficiency;
         if (earned <= 0)
         {

@@ -8,22 +8,24 @@
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.0.0)
+## Aktueller Stand (v1.1.0)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
 - **Prestige („Verwaltungsreform"):** ab 1 Mio. verdienter Stempel; Paragraphen = ⌊√(verdient/1e6)⌋; je § +5 % Produktion dauerhaft. Auto-Buyer & Achievements überleben Resets.
 - **Auto-Buyer:** pro Generator kaufbar (250× Basiskosten), per ToggleSwitch schaltbar, kauft 1×/Tick wenn bezahlbar.
-- **Achievements:** 17 Stück, je +1 % Produktion, Toast-Benachrichtigung, verdeckt bis Freischaltung.
+- **Forschung ("Verwaltungsakademie"):** 15 Fortbildungen in 4 Stufen mit Voraussetzungsbaum, kosten Stempel, **verfallen bei Reformen**. 7 Effekttypen: Generator-/Global-/Klick-Multiplikator, Kostenreduktion (multiplikativ), Offline-Effizienz (50→75 %), Offline-Cap (8→24 h), Paragraphen-Bonus (+25 %/+50 %).
+- **Achievements:** 19 Stück, je +1 % Produktion, Toast-Benachrichtigung, verdeckt bis Freischaltung.
 - **Klick-Upgrade („Stempelkissen"):** Klickkraft = 2^Stufe, Kosten ×12 pro Stufe.
 - **Offline-Fortschritt:** 50 % Effizienz, Cap 8 h, Banner beim Start.
 - **Persistenz:** JSON-Savegame (atomares Schreiben via tmp+move), Autosave 30 s + bei Exit, korrupte Saves werden gesichert statt gelöscht.
-- **Tests:** 15 xUnit-Tests für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
+- **Tests:** 27 xUnit-Tests (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
 
 ## Roadmap
 
 - Balancing-Pass (Generator-Kurven, Prestige-Formel) — erst nach Feature-Vollständigkeit.
-- Weitere Upgrade-Kategorien (generator-spezifische Multiplikatoren, „Goldene Formulare" als Random-Events).
+- „Goldene Formulare" als Random-Events.
+- Forschungsbaum ggf. visuell als Graph statt Liste darstellen.
 - Statistik-Tab (Lifetime-Werte, Diagramme).
 - System-Tray-Minimierung (Muster aus Checkmk Cockpit übernehmbar).
 - Optional: Cloud-Save / Export-Import des Spielstands als Base64.
@@ -32,6 +34,7 @@
 
 - **Kostenformel:** `cost = base × 1.15^owned`; Bulk: geometrische Reihe.
 - **Produktionsformel:** `baseProd × owned × (1 + §×0.05) × (1 + achievements×0.01)`.
+- **Forschung:** `Models/ResearchDefinitions.cs` (Baum) + Effektauswertung in `GameEngine` (`ResearchMultiplierFor`, `CostFactor`, `OfflineEfficiency`, `OfflineCap`, `ParagraphMultiplier`). Neue Effekttypen im Enum `ResearchEffectType` ergänzen.
 - **Engine ist UI-frei** (`Services/GameEngine.cs`) — alle Logikänderungen dort, ViewModels nur Anzeige/Commands.
 - Zahlformatierung: `NumberFormatter` (deutsche Suffixe Tsd./Mio./Mrd./Bio./Brd./Trill., ab 1e21 wissenschaftlich).
 - Version in `Directory.Build.props` bei jeder Änderung erhöhen.

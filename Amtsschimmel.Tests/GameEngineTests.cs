@@ -138,7 +138,7 @@ public sealed class GameEngineTests
 
         Assert.NotNull(result);
         var (duration, earned) = result.Value;
-        Assert.Equal(GameEngine.OfflineCap, duration); // 24 h → gekappt auf 8 h
+        Assert.Equal(engine.OfflineCap, duration); // 24 h → gekappt auf 8 h (Basis)
         // 8 h × 3600 s × 1/s × 0,5 Effizienz = 14.400
         Assert.Equal(14_400, earned, precision: 3);
     }

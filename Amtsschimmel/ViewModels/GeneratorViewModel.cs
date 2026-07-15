@@ -68,11 +68,11 @@ public sealed partial class GeneratorViewModel : ObservableObject
             AutoBuyerEnabled = state.AutoBuyerEnabled;
         }
 
-        var cost = Definition.CostFor(state.Owned);
+        var cost = _engine.NextCost(Definition);
         CostText = NumberFormatter.Format(cost);
-        Cost10Text = NumberFormatter.Format(Definition.CostForBulk(state.Owned, 10));
+        Cost10Text = NumberFormatter.Format(_engine.BulkCost(Definition, 10));
         CanBuy = _engine.CanAfford(cost);
-        CanBuy10 = _engine.CanAfford(Definition.CostForBulk(state.Owned, 10));
+        CanBuy10 = _engine.CanAfford(_engine.BulkCost(Definition, 10));
         CanBuyAutoBuyer = !state.AutoBuyerOwned && _engine.CanAfford(Definition.AutoBuyerCost);
         ProductionText = NumberFormatter.Format(_engine.ProductionPerSecond(Definition)) + "/s";
 

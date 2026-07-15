@@ -24,6 +24,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<GeneratorViewModel> Generators { get; } = [];
     public ObservableCollection<AchievementViewModel> Achievements { get; } = [];
+    public ObservableCollection<ResearchViewModel> Research { get; } = [];
+
+    [ObservableProperty]
+    private string _researchCountText = "";
 
     [ObservableProperty]
     private string _stempelText = "0";
@@ -92,6 +96,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         {
             Achievements.Add(new AchievementViewModel(def));
         }
+        foreach (var def in ResearchDefinitions.All)
+        {
+            Research.Add(new ResearchViewModel(_engine, def));
+        }
 
         ShowOfflineProgress();
 
@@ -110,7 +118,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             OfflineReportText =
                 $"Willkommen zurück! Während deiner Abwesenheit ({duration.Hours} h {duration.Minutes} min) " +
                 $"hat dein Amt {NumberFormatter.Format(earned)} Stempel produziert " +
-                $"({GameEngine.OfflineEfficiency:P0} Effizienz, max. {GameEngine.OfflineCap.TotalHours:0} h).";
+                $"({_engine.OfflineEfficiency:P0} Effizienz, max. {_engine.OfflineCap.TotalHours:0} h).";
             IsOfflineReportVisible = true;
         }
     }
@@ -143,10 +151,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ? $"Reform bereit: +{PendingParagraphen} §"
             : $"Noch {NumberFormatter.Format(Math.Max(0, GameEngine.PrestigeThreshold - state.TotalEarnedThisRun))} Stempel bis zur ersten Reform";
         AchievementCountText = $"{state.UnlockedAchievements.Count} / {GameDefinitions.Achievements.Count}";
+        ResearchCountText = $"{state.ResearchedIds.Count} / {ResearchDefinitions.All.Count}";
 
         foreach (var generator in Generators)
         {
             generator.Refresh();
+        }
+        foreach (var research in Research)
+        {
+            research.Refresh();
         }
         foreach (var achievement in Achievements)
         {
