@@ -50,6 +50,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _nextThresholdText = "";
 
+    /// <summary>Fortschritt zur nächsten Reform-Schwelle (0..1) für den Fortschrittsbalken.</summary>
+    [ObservableProperty]
+    private double _prestigeProgress;
+
     [ObservableProperty]
     private string _clickUpgradeCostText = "";
 
@@ -166,6 +170,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             ? $"Reform bereit: +{PendingParagraphen} §"
             : $"Noch {NumberFormatter.Format(Math.Max(0, _engine.CurrentPrestigeThreshold - state.TotalEarnedThisRun))} Stempel bis zur nächsten Reform";
         NextThresholdText = $"Aktuelle Reform-Schwelle: {NumberFormatter.Format(_engine.CurrentPrestigeThreshold)} Stempel (verzehnfacht sich mit jeder Reform)";
+        PrestigeProgress = Math.Clamp(state.TotalEarnedThisRun / _engine.CurrentPrestigeThreshold, 0, 1);
         AchievementCountText = $"{state.UnlockedAchievements.Count} / {GameDefinitions.Achievements.Count}";
         ResearchCountText = $"{state.ResearchLevels.Values.Sum()} Stufen in {state.ResearchLevels.Count} / {ResearchDefinitions.All.Count} Fortbildungen";
 

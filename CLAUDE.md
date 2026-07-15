@@ -9,7 +9,7 @@
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.4.1)
+## Aktueller Stand (v1.5.1)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
@@ -21,13 +21,15 @@
 - **Achievements:** 20 Stück (Klick-Achievements zählen nur manuelle Klicks), je +1 % Produktion, Toast-Benachrichtigung, verdeckt bis Freischaltung.
 - **Klick-Upgrade („Stempelkissen"):** Klickkraft = 2^Stufe, Kosten ×12 pro Stufe.
 - **Offline-Fortschritt:** 50 % Effizienz, Cap 8 h, Banner beim Start.
+- **Animationen ("Juice"):** Schwebende "+X"-Klickzahlen (Code-Behind `OnStampClick`, `Animation` auf `Canvas.Top` + `Opacity`, Spam-Schutz bei >30 Partikeln), Stempel-Button-Press (`scale(0.94)` via `:pressed` + `TransformOperationsTransition`), Toast als Overlay unten mittig mit Slide-in/Fade (Klassen-Trick: `Classes.visible="{Binding …}"` + Transitions, verschiebt Layout nicht mehr), pulsierender Reform-Button (Style-Animation `INFINITE` auf Klasse `.ready`; **Falle:** Keyframe-Animationen haben keinen Animator für `RenderTransform` → `ScaleTransform.ScaleX/ScaleY` animieren, `RenderTransform`-Strings nur in Transitions/Settern verwenden), Fortschrittsbalken zur Reform-Schwelle (`PrestigeProgress` 0..1).
 - **Persistenz:** JSON-Savegame (atomares Schreiben via tmp+move), Autosave 30 s + bei Exit, korrupte Saves werden gesichert statt gelöscht.
-- **Tests:** 38 xUnit-Tests (Engine; UI-Rahmen ungetestet) (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
+- **Tests:** 40 xUnit-Tests: Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
 
 ## Roadmap
 
 - Balancing-Pass (Generator-Kurven, Prestige-Schwellenwachstum ×10 prüfen) — erst nach Feature-Vollständigkeit.
-- „Goldene Formulare" als Random-Events.
+- „Goldene Formulare" als Random-Events (klickbares Bonus-Event, ideale Ergänzung zum Partikel-System).
+- Optional: Soundeffekte (Stempelgeräusch) via minimaler Audio-Lib — bewusst noch nicht drin.
 - Forschungsbaum ggf. visuell als Graph statt Liste darstellen.
 - Statistik-Tab (Lifetime-Werte, Diagramme).
 - System-Tray-Minimierung (Muster aus Checkmk Cockpit übernehmbar).
