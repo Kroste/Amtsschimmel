@@ -14,7 +14,31 @@ public sealed partial class MainWindow : ChromeWindow
     private static readonly Random Rng = new();
     private static readonly IBrush ParticleBrush = new SolidColorBrush(Color.Parse("#8FD4A8"));
 
-    public MainWindow() => InitializeComponent();
+    public MainWindow()
+    {
+        InitializeComponent();
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.PropertyChanged += OnViewModelPropertyChanged;
+            }
+        };
+    }
+
+    /// <summary>Positioniert das Goldene Formular zufällig, sobald es erscheint.</summary>
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainWindowViewModel.IsGoldenFormVisible)
+            || sender is not MainWindowViewModel { IsGoldenFormVisible: true })
+        {
+            return;
+        }
+        var maxX = Math.Max(41, (int)GoldenCanvas.Bounds.Width - 120);
+        var maxY = Math.Max(41, (int)GoldenCanvas.Bounds.Height - 90);
+        Canvas.SetLeft(GoldenFormButton, Rng.Next(40, maxX));
+        Canvas.SetTop(GoldenFormButton, Rng.Next(40, maxY));
+    }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {

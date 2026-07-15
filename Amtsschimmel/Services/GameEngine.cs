@@ -25,6 +25,70 @@ public sealed class GameEngine
     /// <summary>Wird gefeuert, wenn ein Achievement neu freigeschaltet wurde.</summary>
     public event Action<AchievementDefinition>? AchievementUnlocked;
 
+    /// <summary>Wird gefeuert, wenn ein Generator eine Meilenstein-Schwelle überschreitet.</summary>
+    public event Action<GeneratorDefinition, int>? MilestoneReached;
+
+    // ---------- Temporärer Produktions-Buff (Goldene Formulare) ----------
+
+    private double _buffFactor = 1;
+    private DateTime _buffExpiresUtc = DateTime.MinValue;
+
+    public bool IsBuffActive => DateTime.UtcNow < _buffExpiresUtc;
+
+    /// <summary>Aktiver Buff-Faktor (1, wenn kein Buff läuft).</summary>
+    public double ActiveBuffFactor => IsBuffActive ? _buffFactor : 1;
+
+    public TimeSpan BuffRemaining => IsBuffActive ? _buffExpiresUtc - DateTime.UtcNow : TimeSpan.Zero;
+
+    public void ActivateProductionBuff(double factor, TimeSpan duration)
+    {
+        _buffFactor = factor;
+        _buffExpiresUtc = DateTime.UtcNow + duration;
+        Log.Info("Produktions-Buff aktiv: ×{Factor} für {Duration}", factor, duration);
+    }
+
+    /// <summary>
+    /// Belohnung für ein geklicktes Goldenes Formular: entweder Sofort-Stempel
+    /// ("Fördermittel") oder temporärer Produktions-Buff ("Erlassflut").
+    /// </summary>
+    public string GrantGoldenFormReward(Random rng)
+    {
+        State.GoldenFormsClicked++;
+        if (rng.Next(2) == 0)
+        {
+            var amount = Math.Max(500, EffectiveIncomePerSecond() * 90 + State.Stempel * 0.05);
+            AddStempel(amount);
+            Log.Info("Goldenes Formular: Fördermittel +{Amount:0}", amount);
+            return $"💰 Fördermittel bewilligt: +{NumberFormatter.Format(amount)} Stempel!";
+        }
+        ActivateProductionBuff(7, TimeSpan.FromSeconds(30));
+        return "⚡ Erlassflut! ×7 Produktion für 30 Sekunden!";
+    }
+
+    // ---------- Meilensteine ("Beförderungen") ----------
+
+    /// <summary>×2 je erreichter Bestands-Schwelle (10/25/50/100/150/200).</summary>
+    public double MilestoneMultiplierFor(string generatorId)
+    {
+        var owned = State.GetGenerator(generatorId).Owned;
+        var reached = GameDefinitions.MilestoneThresholds.Count(t => owned >= t);
+        return Math.Pow(2, reached);
+    }
+
+    /// <summary>Nächste noch nicht erreichte Meilenstein-Schwelle, oder null.</summary>
+    public int? NextMilestoneFor(string generatorId)
+    {
+        var owned = State.GetGenerator(generatorId).Owned;
+        foreach (var threshold in GameDefinitions.MilestoneThresholds)
+        {
+            if (owned < threshold)
+            {
+                return threshold;
+            }
+        }
+        return null;
+    }
+
     public void LoadState(GameState state)
     {
         State = state;
@@ -138,7 +202,8 @@ public sealed class GameEngine
     /// <summary>Produktion eines einzelnen Generators pro Sekunde (inkl. aller Multiplikatoren).</summary>
     public double ProductionPerSecond(GeneratorDefinition def) =>
         def.BaseProduction * State.GetGenerator(def.Id).Owned
-        * GlobalMultiplier * ResearchMultiplierFor(def.Id);
+        * GlobalMultiplier * ResearchMultiplierFor(def.Id)
+        * MilestoneMultiplierFor(def.Id) * ActiveBuffFactor;
 
     /// <summary>Gesamtproduktion pro Sekunde.</summary>
     public double TotalProductionPerSecond() =>
@@ -173,7 +238,13 @@ public sealed class GameEngine
     /// <summary>Ein Simulationsschritt. <paramref name="deltaSeconds"/> = vergangene Zeit.</summary>
     public void Tick(double deltaSeconds)
     {
-        var gain = EffectiveIncomePerSecond() * deltaSeconds;
+        State.TotalPlaySeconds += deltaSeconds;
+        var income = EffectiveIncomePerSecond();
+        if (income > State.HighestIncomePerSec)
+        {
+            State.HighestIncomePerSec = income;
+        }
+        var gain = income * deltaSeconds;
         if (gain > 0)
         {
             AddStempel(gain);
@@ -216,8 +287,17 @@ public sealed class GameEngine
             return false;
         }
         State.Stempel -= cost;
+        var before = gen.Owned;
         gen.Owned += amount;
         Log.Debug("Gekauft: {Amount}x {Name} für {Cost:0} Stempel", amount, def.Name, cost);
+        foreach (var threshold in GameDefinitions.MilestoneThresholds)
+        {
+            if (before < threshold && gen.Owned >= threshold)
+            {
+                Log.Info("Meilenstein: {Name} erreicht {Threshold} Einheiten (×2)", def.Name, threshold);
+                MilestoneReached?.Invoke(def, threshold);
+            }
+        }
         return true;
     }
 

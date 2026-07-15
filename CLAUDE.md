@@ -9,7 +9,7 @@
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.5.1)
+## Aktueller Stand (v1.6.0)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
@@ -18,20 +18,22 @@
 - **Auto-Stempeln:** Forschung „Pneumatischer Stempelautomat" (Effekttyp `AutoClick`, additiv je Stufe, max. 10 Klicks/s). Erträgt Klickkraft × Rate, zählt NICHT als manueller Klick (Klick-Achievements!), wirkt auch offline (`EffectiveIncomePerSecond`).
 - **Auto-Buyer:** pro Generator kaufbar (250× Basiskosten), per ToggleSwitch schaltbar, kauft 1×/Tick wenn bezahlbar.
 - **Forschung ("Verwaltungsakademie"):** 16 Fortbildungen mit Voraussetzungsbaum, **mehrstufig**: `MaxLevel` (1 = einmalig, n = wiederholbar, 0 = endlos, z. B. "Bürokratieabbau" ×1,1 je Stufe), Kosten je Stufe ×`CostGrowth` (Standard ×8). Effekte stapeln multiplikativ je Stufe (`value^level` bzw. `(1−v)^level` bei Rabatten, `(1+v)^level` bei Paragraphen-Boni). Verfallen bei Reformen. 7 Effekttypen: Generator-/Global-/Klick-Multiplikator, Kostenreduktion, Offline-Effizienz (50→75 %), Offline-Cap (8→24 h), Paragraphen-Bonus.
-- **Achievements:** 20 Stück (Klick-Achievements zählen nur manuelle Klicks), je +1 % Produktion, Toast-Benachrichtigung, verdeckt bis Freischaltung.
+- **Achievements:** 22 Stück (Klick-Achievements zählen nur manuelle Klicks), je +1 % Produktion, Toast-Benachrichtigung, verdeckt bis Freischaltung.
 - **Klick-Upgrade („Stempelkissen"):** Klickkraft = 2^Stufe, Kosten ×12 pro Stufe.
 - **Offline-Fortschritt:** 50 % Effizienz, Cap 8 h, Banner beim Start.
 - **Animationen ("Juice"):** Schwebende "+X"-Klickzahlen (Code-Behind `OnStampClick`, `Animation` auf `Canvas.Top` + `Opacity`, Spam-Schutz bei >30 Partikeln), Stempel-Button-Press (`scale(0.94)` via `:pressed` + `TransformOperationsTransition`), Toast als Overlay unten mittig mit Slide-in/Fade (Klassen-Trick: `Classes.visible="{Binding …}"` + Transitions, verschiebt Layout nicht mehr), pulsierender Reform-Button (Style-Animation `INFINITE` auf Klasse `.ready`; **Falle:** Keyframe-Animationen haben keinen Animator für `RenderTransform` → `ScaleTransform.ScaleX/ScaleY` animieren, `RenderTransform`-Strings nur in Transitions/Settern verwenden), Fortschrittsbalken zur Reform-Schwelle (`PrestigeProgress` 0..1).
+- **Meilensteine ("Beförderungen"):** Bestands-Schwellen 10/25/50/100/150/200 je Generator → je ×2 Produktion (`MilestoneMultiplierFor`), Event `MilestoneReached` beim Überschreiten (auch bei Bulk-Käufen), Toast + Anzeige in Generatorkarte.
+- **Goldene Formulare:** Spawn-Chance alle 30 s (~17 %, ≈ alle 3 Min.), 12 s sichtbar, zufällige Position (Code-Behind), pulsierender Button-Overlay. Belohnung 50/50: Sofort-Stempel (max(500, 90 s Einkommen + 5 % Kontostand)) oder Buff "Erlassflut" ×7 für 30 s (`ActivateProductionBuff`, nicht persistiert). Zähler `GoldenFormsClicked` persistiert.
+- **Amtsblatt-Ticker:** `AmtsblattService` (18 generische + 8 zustandsabhängige Postillon-Meldungen, 40 % konditional wenn verfügbar, keine Direktwiederholung), Statuszeile unten mit Ticker links + "💾 gespeichert vor X s" rechts, Wechsel alle 25 s.
+- **Statistik-Tab:** Lifetime-Werte (Spielzeit, Klicks, Rekord-Einkommen, Goldene Formulare …) + Einkommens-Sparkline (Polyline, 60 Samples à 5 s = 5 Min., Normalisierung im VM via `Avalonia.Points`).
 - **Persistenz:** JSON-Savegame (atomares Schreiben via tmp+move), Autosave 30 s + bei Exit, korrupte Saves werden gesichert statt gelöscht.
-- **Tests:** 40 xUnit-Tests: Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
+- **Tests:** 48 xUnit-Tests: Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
 
 ## Roadmap
 
 - Balancing-Pass (Generator-Kurven, Prestige-Schwellenwachstum ×10 prüfen) — erst nach Feature-Vollständigkeit.
-- „Goldene Formulare" als Random-Events (klickbares Bonus-Event, ideale Ergänzung zum Partikel-System).
 - Optional: Soundeffekte (Stempelgeräusch) via minimaler Audio-Lib — bewusst noch nicht drin.
 - Forschungsbaum ggf. visuell als Graph statt Liste darstellen.
-- Statistik-Tab (Lifetime-Werte, Diagramme).
 - System-Tray-Minimierung (Muster aus Checkmk Cockpit übernehmbar).
 - InfoWindow-URLs (GitHub-Repo, BMC-Handle) verifizieren.
 - Optional: Cloud-Save / Export-Import des Spielstands als Base64.

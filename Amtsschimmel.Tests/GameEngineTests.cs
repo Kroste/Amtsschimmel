@@ -54,9 +54,10 @@ public sealed class GameEngineTests
     public void Tick_ProduziertStempelProportionalZurZeit()
     {
         var engine = new GameEngine();
-        engine.State.GetGenerator(Praktikant.Id).Owned = 10; // 10 × 0,1/s = 1/s
+        // 10 Einheiten erreichen den ersten Meilenstein → ×2: 10 × 0,1/s × 2 = 2/s.
+        engine.State.GetGenerator(Praktikant.Id).Owned = 10;
         engine.Tick(deltaSeconds: 5);
-        Assert.Equal(5, engine.State.Stempel, precision: 6);
+        Assert.Equal(10, engine.State.Stempel, precision: 6);
     }
 
     [Fact]
@@ -131,7 +132,7 @@ public sealed class GameEngineTests
     public void OfflineProgress_GekapptUndMitEffizienzfaktor()
     {
         var engine = new GameEngine();
-        engine.State.GetGenerator(Praktikant.Id).Owned = 10; // 1/s
+        engine.State.GetGenerator(Praktikant.Id).Owned = 10; // 1/s × Meilenstein ×2 = 2/s
         engine.State.LastSavedUtc = DateTime.UtcNow - TimeSpan.FromHours(24);
 
         var result = engine.ApplyOfflineProgress();
@@ -139,8 +140,8 @@ public sealed class GameEngineTests
         Assert.NotNull(result);
         var (duration, earned) = result.Value;
         Assert.Equal(engine.OfflineCap, duration); // 24 h → gekappt auf 8 h (Basis)
-        // 8 h × 3600 s × 1/s × 0,5 Effizienz = 14.400
-        Assert.Equal(14_400, earned, precision: 3);
+        // 8 h × 3600 s × 2/s × 0,5 Effizienz = 28.800
+        Assert.Equal(28_800, earned, precision: 3);
     }
 
     [Fact]

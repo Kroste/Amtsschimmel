@@ -40,6 +40,15 @@ public sealed class GameState
 
     public int GetResearchLevel(string id) => ResearchLevels.GetValueOrDefault(id);
 
+    /// <summary>Gesamte Spielzeit in Sekunden (über alle Runs).</summary>
+    public double TotalPlaySeconds { get; set; }
+
+    /// <summary>Höchstes je erreichtes Einkommen pro Sekunde.</summary>
+    public double HighestIncomePerSec { get; set; }
+
+    /// <summary>Anzahl geklickter Goldener Formulare.</summary>
+    public int GoldenFormsClicked { get; set; }
+
     /// <summary>Zeitpunkt des letzten Speicherns (UTC) — Basis für Offline-Fortschritt.</summary>
     public DateTime LastSavedUtc { get; set; } = DateTime.UtcNow;
 

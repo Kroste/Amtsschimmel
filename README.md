@@ -15,6 +15,11 @@ Sachbearbeiter und ganze Dezernate ein — und wenn der Laden läuft: Verwaltung
 - 💤 **Offline-Fortschritt:** 50 % Effizienz, max. 8 h, Bericht beim Start
 - 💾 **Autosave:** Alle 30 s + beim Beenden, atomares JSON in `%APPDATA%/Amtsschimmel`
 
+- 🏅 **Meilensteine:** Bei 10/25/50/100/150/200 Einheiten eines Generators je ×2 Produktion („Beförderung")
+- ✨ **Goldene Formulare:** Zufällig auftauchendes Klick-Event — Sofort-Stempel oder ×7-Produktionsboost
+- 📰 **Amtsblatt:** Satirischer Nachrichten-Ticker, der auf den Spielstand reagiert
+- 📈 **Statistik:** Lifetime-Werte und Einkommensverlauf als Kurve
+
 ## Starten
 
 ```bash

@@ -61,10 +61,30 @@
                 </Animation>
             </Style.Animations>
         </Style>
+
+        <!-- Goldenes Formular: auffälliges Pulsieren -->
+        <Style Selector="Button.golden">
+            <Style.Animations>
+                <Animation Duration="0:0:0.8" IterationCount="INFINITE">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="50%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1.12" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1.12" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
     </Window.Styles>
 
     <Border Background="#1A1D21">
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*,Auto">
 
         <!-- Eigene Titelleiste (Projektstandard, siehe DTM/Checkmk) -->
         <Border Grid.Row="0" Background="#2D2D30" Height="36"
@@ -119,6 +139,9 @@
                         <TextBlock Text="{Binding PerSecondText}" Opacity="0.7" HorizontalAlignment="Center" />
                         <TextBlock Text="{Binding AutoClickText}" Opacity="0.7" FontSize="12"
                                    HorizontalAlignment="Center" IsVisible="{Binding IsAutoClickVisible}" />
+                        <TextBlock Text="{Binding BuffText}" FontSize="12" FontWeight="SemiBold"
+                                   Foreground="#E0B14C" HorizontalAlignment="Center"
+                                   IsVisible="{Binding IsBuffVisible}" />
                     </StackPanel>
 
                     <Panel>
@@ -190,6 +213,7 @@
                                                            TextWrapping="Wrap" />
                                                 <TextBlock Opacity="0.8" FontSize="12">
                                                     <Run Text="Produziert " /><Run Text="{Binding ProductionText}" />
+                                                    <Run Text="  " /><Run Text="{Binding MilestoneText}" Foreground="#E0B14C" />
                                                 </TextBlock>
                                                 <TextBlock Text="{Binding ReformLockText}" FontSize="12"
                                                            Foreground="#E0B14C" IsVisible="{Binding IsReformLocked}" />
@@ -334,8 +358,57 @@
                     </ScrollViewer>
                 </TabItem>
 
+                <TabItem Header="📈 Statistik">
+                    <ScrollViewer>
+                        <StackPanel Margin="16" Spacing="14" MaxWidth="640" HorizontalAlignment="Left">
+                            <TextBlock Text="Amtsstatistik" FontSize="22" FontWeight="Bold" />
+                            <Border Background="#22262B" CornerRadius="8" Padding="16">
+                                <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Spielzeit gesamt" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StatPlayTime}" />
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Stempel (alle Zeiten)" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StatAllTimeEarned}" />
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Stempel (dieser Run)" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding StatRunEarned}" />
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Manuelle Klicks" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding StatClicks}" />
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Rekord-Einkommen" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding StatHighestIncome}" />
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Reformen / Paragraphen" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding StatReformen}" />
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Goldene Formulare" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding StatGolden}" />
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Personal gesamt" Opacity="0.7" Margin="0,0,0,6" />
+                                    <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding StatPersonal}" />
+                                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Fortbildungen" Opacity="0.7" />
+                                    <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding StatResearch}" />
+                                </Grid>
+                            </Border>
+                            <Border Background="#22262B" CornerRadius="8" Padding="16">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Einkommen/s (letzte 5 Minuten)" Opacity="0.7" FontSize="12" />
+                                    <Border Height="74" ClipToBounds="True">
+                                        <Polyline Points="{Binding SparklinePoints}" Stroke="#7EC8A4"
+                                                  StrokeThickness="2" StrokeJoin="Round" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
             </TabControl>
         </Grid>
+        <!-- Goldenes Formular: Overlay über dem Inhalt, Position setzt der Code-Behind -->
+        <Canvas Grid.Row="1" Name="GoldenCanvas" ZIndex="9" ClipToBounds="True">
+            <Button Name="GoldenFormButton" Classes="golden"
+                    IsVisible="{Binding IsGoldenFormVisible}"
+                    Command="{Binding ClickGoldenFormCommand}"
+                    Background="#B8860B" CornerRadius="10" Padding="10,6"
+                    Content="📄✨" FontSize="24"
+                    ToolTip.Tip="Goldenes Formular — schnell abstempeln!" />
+        </Canvas>
+
         <!-- Achievement-/Reform-Toast als Overlay (verschiebt das Layout nicht) -->
         <Border Grid.Row="1" Classes="toast" Classes.visible="{Binding IsToastVisible}"
                 VerticalAlignment="Bottom" HorizontalAlignment="Center"
@@ -345,6 +418,17 @@
             <TextBlock Text="{Binding ToastText}" TextWrapping="Wrap" FontWeight="SemiBold" />
         </Border>
     </Grid>
+
+        <!-- Statuszeile: Amtsblatt-Ticker + Speicher-Indikator -->
+        <Border Grid.Row="2" Background="#22262B" Padding="12,5">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Text="📰 Amtsblatt: " Opacity="0.6" FontSize="12" />
+                <TextBlock Grid.Column="1" Text="{Binding TickerText}" FontSize="12" Opacity="0.85"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="2" Text="{Binding SaveIndicatorText}" FontSize="12"
+                           Opacity="0.5" Margin="12,0,0,0" />
+            </Grid>
+        </Border>
     </Grid>
     </Border>
 </views:ChromeWindow>

@@ -21,9 +21,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private readonly GameEngine _engine;
     private readonly SaveGameService _saveGame;
+    private readonly AmtsblattService _amtsblatt = new();
     private readonly DispatcherTimer _gameTimer;
     private readonly DispatcherTimer _autosaveTimer;
+    private readonly DispatcherTimer _tickerTimer;
+    private readonly DispatcherTimer _goldenTimer;
+    private readonly Random _rng = new();
     private DateTime _lastTickUtc = DateTime.UtcNow;
+    private DateTime _lastSaveUtc = DateTime.UtcNow;
+    private readonly Queue<double> _incomeSamples = new();
+    private int _sampleTickCounter;
 
     public ObservableCollection<GeneratorViewModel> Generators { get; } = [];
     public ObservableCollection<AchievementViewModel> Achievements { get; } = [];
@@ -53,6 +60,54 @@ public sealed partial class MainWindowViewModel : ObservableObject
     /// <summary>Fortschritt zur nächsten Reform-Schwelle (0..1) für den Fortschrittsbalken.</summary>
     [ObservableProperty]
     private double _prestigeProgress;
+
+    // ---- Buff (Goldene Formulare) ----
+    [ObservableProperty]
+    private string _buffText = "";
+
+    [ObservableProperty]
+    private bool _isBuffVisible;
+
+    [ObservableProperty]
+    private bool _isGoldenFormVisible;
+
+    // ---- Statuszeile ----
+    [ObservableProperty]
+    private string _tickerText = "Amtsblatt wird zugestellt …";
+
+    [ObservableProperty]
+    private string _saveIndicatorText = "";
+
+    // ---- Statistik-Tab ----
+    [ObservableProperty]
+    private string _statPlayTime = "";
+
+    [ObservableProperty]
+    private string _statAllTimeEarned = "";
+
+    [ObservableProperty]
+    private string _statRunEarned = "";
+
+    [ObservableProperty]
+    private string _statClicks = "";
+
+    [ObservableProperty]
+    private string _statHighestIncome = "";
+
+    [ObservableProperty]
+    private string _statReformen = "";
+
+    [ObservableProperty]
+    private string _statGolden = "";
+
+    [ObservableProperty]
+    private string _statPersonal = "";
+
+    [ObservableProperty]
+    private string _statResearch = "";
+
+    [ObservableProperty]
+    private Avalonia.Points? _sparklinePoints;
 
     [ObservableProperty]
     private string _clickUpgradeCostText = "";
@@ -119,10 +174,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
         ShowOfflineProgress();
 
+        _engine.MilestoneReached += OnMilestoneReached;
+
         _gameTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(100), DispatcherPriority.Normal, OnGameTick);
         _autosaveTimer = new DispatcherTimer(TimeSpan.FromSeconds(30), DispatcherPriority.Background, (_, _) => Save());
+        _tickerTimer = new DispatcherTimer(TimeSpan.FromSeconds(25), DispatcherPriority.Background,
+            (_, _) => TickerText = _amtsblatt.NextHeadline(_engine.State));
+        _goldenTimer = new DispatcherTimer(TimeSpan.FromSeconds(30), DispatcherPriority.Background, OnGoldenTimer);
         _gameTimer.Start();
         _autosaveTimer.Start();
+        _tickerTimer.Start();
+        _goldenTimer.Start();
+        TickerText = _amtsblatt.NextHeadline(_engine.State);
         RefreshAll();
     }
 
@@ -174,6 +237,36 @@ public sealed partial class MainWindowViewModel : ObservableObject
         AchievementCountText = $"{state.UnlockedAchievements.Count} / {GameDefinitions.Achievements.Count}";
         ResearchCountText = $"{state.ResearchLevels.Values.Sum()} Stufen in {state.ResearchLevels.Count} / {ResearchDefinitions.All.Count} Fortbildungen";
 
+        IsBuffVisible = _engine.IsBuffActive;
+        if (IsBuffVisible)
+        {
+            BuffText = $"⚡ Erlassflut ×{_engine.ActiveBuffFactor:0.#} — noch {_engine.BuffRemaining.TotalSeconds:0} s";
+        }
+        var sinceSave = (DateTime.UtcNow - _lastSaveUtc).TotalSeconds;
+        SaveIndicatorText = $"💾 gespeichert vor {sinceSave:0} s";
+
+        StatPlayTime = FormatDuration(TimeSpan.FromSeconds(state.TotalPlaySeconds));
+        StatAllTimeEarned = NumberFormatter.Format(state.TotalEarnedAllTime);
+        StatRunEarned = NumberFormatter.Format(state.TotalEarnedThisRun);
+        StatClicks = state.TotalClicks.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("de-DE"));
+        StatHighestIncome = NumberFormatter.Format(state.HighestIncomePerSec) + "/s";
+        StatReformen = $"{state.TotalReformen} (⌀ {state.Paragraphen} §)";
+        StatGolden = state.GoldenFormsClicked.ToString();
+        StatPersonal = state.Generators.Values.Sum(g => g.Owned).ToString();
+        StatResearch = $"{state.ResearchLevels.Values.Sum()} Stufen";
+
+        // Sparkline: alle ~5 s ein Einkommens-Sample, 60 Samples = 5 Minuten.
+        if (++_sampleTickCounter >= 50)
+        {
+            _sampleTickCounter = 0;
+            _incomeSamples.Enqueue(_engine.EffectiveIncomePerSecond());
+            while (_incomeSamples.Count > 60)
+            {
+                _incomeSamples.Dequeue();
+            }
+            SparklinePoints = BuildSparkline();
+        }
+
         foreach (var generator in Generators)
         {
             generator.Refresh();
@@ -191,12 +284,39 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void OnAchievementUnlocked(AchievementDefinition achievement)
+    private void OnAchievementUnlocked(AchievementDefinition achievement) =>
+        ShowToast($"🏆 {achievement.Name} — {achievement.Description} (+1 % Produktion)");
+
+    private void OnMilestoneReached(GeneratorDefinition def, int threshold) =>
+        ShowToast($"🏅 Beförderung! {threshold}× {def.Name} — Produktion des Typs verdoppelt!");
+
+    private void ShowToast(string text)
     {
-        ToastText = $"🏆 {achievement.Name} — {achievement.Description} (+1 % Produktion)";
+        ToastText = text;
         IsToastVisible = true;
-        // Toast nach 5 s ausblenden.
         DispatcherTimer.RunOnce(() => IsToastVisible = false, TimeSpan.FromSeconds(5));
+    }
+
+    /// <summary>Alle 30 s Spawn-Chance (~alle 3 Min. eins); verschwindet nach 12 s von selbst.</summary>
+    private void OnGoldenTimer(object? sender, EventArgs e)
+    {
+        if (IsGoldenFormVisible || _rng.Next(100) >= 17)
+        {
+            return;
+        }
+        IsGoldenFormVisible = true;
+        DispatcherTimer.RunOnce(() => IsGoldenFormVisible = false, TimeSpan.FromSeconds(12));
+    }
+
+    [RelayCommand]
+    private void ClickGoldenForm()
+    {
+        if (!IsGoldenFormVisible)
+        {
+            return;
+        }
+        IsGoldenFormVisible = false;
+        ShowToast(_engine.GrantGoldenFormReward(_rng));
     }
 
     [RelayCommand]
@@ -264,7 +384,33 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void DismissOfflineReport() => IsOfflineReportVisible = false;
 
-    public void Save() => _saveGame.Save(_engine.State);
+    private Avalonia.Points? BuildSparkline()
+    {
+        if (_incomeSamples.Count < 2)
+        {
+            return null;
+        }
+        const double width = 600, height = 70;
+        var samples = _incomeSamples.ToArray();
+        var max = Math.Max(samples.Max(), 1e-9);
+        var points = new Avalonia.Points();
+        for (var i = 0; i < samples.Length; i++)
+        {
+            var x = i * width / (samples.Length - 1);
+            var y = height - samples[i] / max * (height - 4) - 2;
+            points.Add(new Avalonia.Point(x, y));
+        }
+        return points;
+    }
+
+    private static string FormatDuration(TimeSpan t) =>
+        t.TotalHours >= 1 ? $"{(int)t.TotalHours} h {t.Minutes} min" : $"{t.Minutes} min {t.Seconds} s";
+
+    public void Save()
+    {
+        _saveGame.Save(_engine.State);
+        _lastSaveUtc = DateTime.UtcNow;
+    }
 
     /// <summary>Beim Fensterschließen aufräumen und final speichern.</summary>
     public void Shutdown()

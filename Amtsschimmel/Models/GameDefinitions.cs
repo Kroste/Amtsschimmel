@@ -33,6 +33,9 @@ public sealed record AchievementDefinition(
 /// <summary>Zentrale statische Spieldaten.</summary>
 public static class GameDefinitions
 {
+    /// <summary>Bestands-Schwellen, ab denen ein Generator je ×2 Produktion erhält ("Beförderung").</summary>
+    public static readonly int[] MilestoneThresholds = [10, 25, 50, 100, 150, 200];
+
     public static readonly IReadOnlyList<GeneratorDefinition> Generators =
     [
         new("praktikant",    "Praktikant",            "Stempelt langsam, aber kostenlos motiviert.",              15,        0.1),
@@ -69,6 +72,8 @@ public static class GameDefinitions
         new("research_lvl25","Lebenslanges Lernen",   "Erreiche 25 Fortbildungsstufen insgesamt.",     s => s.ResearchLevels.Values.Sum() >= 25),
         new("para_100",      "Grundgesetz 2.0",       "Sammle 100 Paragraphen.",                       s => s.Paragraphen >= 100),
         new("click_lvl_5",   "Turbo-Stempelkissen",   "Klick-Upgrade auf Stufe 5.",                    s => s.ClickUpgradeLevel >= 5),
+        new("gen_100_single","Beförderungswelle",     "Beschäftige 100 Einheiten eines Generatortyps.",s => s.Generators.Values.Any(g => g.Owned >= 100)),
+        new("golden_10",     "Goldgräber",            "Erwische 10 Goldene Formulare.",                s => s.GoldenFormsClicked >= 10),
     ];
 
     private static int TotalOwned(GameState s) => s.Generators.Values.Sum(g => g.Owned);

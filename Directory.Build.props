@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Version>1.5.1</Version>
+    <Version>1.6.0</Version>
     <Authors>Kroste</Authors>
     <Product>Amtsschimmel</Product>
   </PropertyGroup>
