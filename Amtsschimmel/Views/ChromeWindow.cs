@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Platform;
 
 namespace Amtsschimmel.Views;
 
@@ -16,5 +17,13 @@ public class ChromeWindow : Window
         ExtendClientAreaTitleBarHeightHint = -1;
         CanResize = true;
         Background = null;
+        try
+        {
+            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://Amtsschimmel/Assets/amtsschimmel.png")));
+        }
+        catch
+        {
+            // Ohne Icon lauffähig bleiben (z. B. falls Asset fehlt).
+        }
     }
 }

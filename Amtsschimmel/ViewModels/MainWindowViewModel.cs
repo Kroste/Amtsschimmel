@@ -159,10 +159,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isOfflineReportVisible;
 
-    public MainWindowViewModel(GameEngine engine, SaveGameService saveGame)
+    private readonly SettingsService _settings;
+    private readonly UpdateCheckService _updateCheck;
+
+    public MainWindowViewModel(GameEngine engine, SaveGameService saveGame,
+        SettingsService settings, UpdateCheckService updateCheck)
     {
         _engine = engine;
         _saveGame = saveGame;
+        _settings = settings;
+        _updateCheck = updateCheck;
 
         _engine.LoadState(_saveGame.Load());
         _engine.AchievementUnlocked += OnAchievementUnlocked;
@@ -193,8 +199,60 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _autosaveTimer.Start();
         _tickerTimer.Start();
         _goldenTimer.Start();
-        TickerText = _amtsblatt.NextHeadline(_engine.State);
+        _settings.Changed += ApplySettings;
+        ApplySettings();
+        if (_settings.Current.CheckUpdatesOnStartup)
+        {
+            _ = CheckForUpdatesOnStartupAsync();
+        }
         RefreshAll();
+    }
+
+    /// <summary>Übernimmt Einstellungsänderungen live (Autosave-Intervall, Ticker).</summary>
+    private void ApplySettings()
+    {
+        _autosaveTimer.Interval = TimeSpan.FromSeconds(Math.Clamp(_settings.Current.AutosaveIntervalSeconds, 10, 300));
+        if (_settings.Current.TickerEnabled)
+        {
+            if (!_tickerTimer.IsEnabled)
+            {
+                _tickerTimer.Start();
+                TickerText = _amtsblatt.NextHeadline(_engine.State);
+            }
+        }
+        else
+        {
+            _tickerTimer.Stop();
+            TickerText = "Amtsblatt abbestellt.";
+        }
+    }
+
+    private async Task CheckForUpdatesOnStartupAsync()
+    {
+        await Task.Delay(TimeSpan.FromSeconds(3)); // App erst in Ruhe starten lassen
+        var update = await _updateCheck.CheckAsync();
+        if (update is not null)
+        {
+            Dispatcher.UIThread.Post(() =>
+                ShowToast($"🔄 Update verfügbar: {update.TagName} — Details unter ⓘ Info"));
+        }
+    }
+
+    [RelayCommand]
+    private void ShowSettings()
+    {
+        var window = new Views.SettingsWindow
+        {
+            DataContext = new SettingsViewModel(_engine, _saveGame, _settings),
+        };
+        if (MainWindow is { } owner)
+        {
+            window.ShowDialog(owner);
+        }
+        else
+        {
+            window.Show();
+        }
     }
 
     private void ShowOfflineProgress()

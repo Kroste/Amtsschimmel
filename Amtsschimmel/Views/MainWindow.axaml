@@ -98,6 +98,10 @@
                                VerticalAlignment="Center" Foreground="White" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="⚙" Command="{Binding ShowSettingsCommand}"
+                            Background="Transparent" BorderThickness="0" Width="42" Height="36"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                            ToolTip.Tip="Einstellungen" />
                     <Button Content="ⓘ Info" Command="{Binding ShowInfoCommand}"
                             Background="Transparent" BorderThickness="0" Height="36"
                             VerticalContentAlignment="Center" />
@@ -194,7 +198,7 @@
             </Border>
 
             <!-- Rechte Spalte: Tabs -->
-            <TabControl Grid.Column="2">
+            <TabControl Grid.Column="2" Name="MainTabs">
 
                 <TabItem Header="🏢 Personal">
                     <ScrollViewer>

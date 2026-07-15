@@ -10,7 +10,7 @@
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.7.0)
+## Aktueller Stand (v1.8.0)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
@@ -27,8 +27,14 @@
 - **Goldene Formulare:** Spawn-Chance alle 30 s (~17 %, ≈ alle 3 Min.), 12 s sichtbar, zufällige Position (Code-Behind), pulsierender Button-Overlay. Belohnung 50/50: Sofort-Stempel (max(500, 90 s Einkommen + 5 % Kontostand)) oder Buff "Erlassflut" ×7 für 30 s (`ActivateProductionBuff`, nicht persistiert). Zähler `GoldenFormsClicked` persistiert.
 - **Amtsblatt-Ticker:** `AmtsblattService` (18 generische + 8 zustandsabhängige Postillon-Meldungen, 40 % konditional wenn verfügbar, keine Direktwiederholung), Statuszeile unten mit Ticker links + "💾 gespeichert vor X s" rechts, Wechsel alle 25 s.
 - **Statistik-Tab:** Lifetime-Werte (Spielzeit, Klicks, Rekord-Einkommen, Goldene Formulare …) + Einkommens-Sparkline (Polyline, 60 Samples à 5 s = 5 Min., Normalisierung im VM via `Avalonia.Points`).
+- **Update-Check:** `UpdateCheckService` gegen GitHub-Releases-API (User-Agent Pflicht!), proxy-fähig via `HttpClientHandler.DefaultProxyCredentials` (Checkmk-Muster gegen 407 hinterm Unternehmens-Proxy). Beim Start (abschaltbar, 3 s verzögert, Toast) + manuell in der InfoBox. `ParseVersion` normalisiert v-Präfix/Prerelease/Metadaten. Wirft nie — offline/Rate-Limit wird nur geloggt.
+- **Einstellungen:** `SettingsService` (settings.json in AppData, `Changed`-Event für Live-Übernahme, Test-Konstruktor mit Verzeichnis-Override). SettingsWindow (⚙ in Titelleiste): Autosave-Intervall (10–300 s, NumericUpDown), Ticker an/aus, Update-Check an/aus, Spielstand-Reset mit Zwei-Klick-Bestätigung.
+- **Save-Transfer:** `SaveGameService.Export/TryImport` — Base64(UTF8-JSON) mit Präfix `AMT1:` als Format-Kennung. Kopieren via `ClipboardExtensions.SetTextAsync` (Avalonia 12: Extension in `Avalonia.Input.Platform`, using nicht vergessen!).
+- **Hotkeys:** Leertaste = Stempeln (mit Partikel; Button-Fokus setzt e.Handled → kein Doppelklick), 1–5 bzw. NumPad = Tab-Wechsel (`MainTabs.SelectedIndex`).
+- **App-Icon:** `Assets/amtsschimmel.png` (generiert), csproj um `<AvaloniaResource Include="Assets\**"/>` ergänzt, Icon zentral im ChromeWindow-Konstruktor via `AssetLoader` (try/catch).
+- **AppImage:** Release-Workflow baut zusätzlich ein AppImage (AppDir + appimagetool `--appimage-extract-and-run`, Desktop-Datei in `packaging/`). Avalonia-12-Falle: `Watermark` heißt jetzt `PlaceholderText`.
 - **Persistenz:** JSON-Savegame (atomares Schreiben via tmp+move), Autosave 30 s + bei Exit, korrupte Saves werden gesichert statt gelöscht.
-- **Tests:** 48 xUnit-Tests: Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
+- **Tests:** 61 xUnit-Tests (inkl. Export/Import-Roundtrip, Versions-Parsing, Settings-Roundtrip, SettingsWindow-Smoke-Test): Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
 
 ## Roadmap
 
@@ -37,6 +43,7 @@
 - Forschungsbaum ggf. visuell als Graph statt Liste darstellen.
 - System-Tray-Minimierung (Muster aus Checkmk Cockpit übernehmbar).
 - InfoWindow-URLs (GitHub-Repo, BMC-Handle) verifizieren.
+- Update-Check könnte künftig das passende Release-Asset direkt herunterladen (Client-Update wie im Checkmk Cockpit).
 - Optional: Cloud-Save / Export-Import des Spielstands als Base64.
 
 ## Referenz

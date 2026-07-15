@@ -1,0 +1,75 @@
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Amtsschimmel.Views"
+        xmlns:vm="using:Amtsschimmel.ViewModels"
+        x:Class="Amtsschimmel.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Width="560" Height="620" MinWidth="480" MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        Title="Einstellungen">
+
+    <Border Background="#1A1D21">
+        <Grid RowDefinitions="Auto,*">
+            <Border Grid.Row="0" Background="#2D2D30" Height="36"
+                    PointerPressed="OnTitleBarPointerPressed">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="⚙️ Einstellungen" VerticalAlignment="Center"
+                               Margin="12,0" Foreground="White" />
+                    <Button Grid.Column="1" Content="✕" Click="OnCloseClick"
+                            Background="Transparent" BorderThickness="0" Width="42" Height="36"
+                            HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Row="1">
+                <StackPanel Margin="20" Spacing="14">
+
+                    <Border Background="#22262B" CornerRadius="8" Padding="14">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Allgemein" FontWeight="Bold" />
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock Grid.Column="0" Text="Autosave-Intervall (Sekunden)"
+                                           VerticalAlignment="Center" />
+                                <NumericUpDown Grid.Column="1" Value="{Binding AutosaveInterval}"
+                                               Minimum="10" Maximum="300" Increment="10"
+                                               FormatString="0" Width="130" />
+                            </Grid>
+                            <ToggleSwitch IsChecked="{Binding TickerEnabled}"
+                                          OnContent="Amtsblatt-Ticker an" OffContent="Amtsblatt-Ticker aus" />
+                            <ToggleSwitch IsChecked="{Binding CheckUpdatesOnStartup}"
+                                          OnContent="Beim Start nach Updates suchen"
+                                          OffContent="Kein Update-Check beim Start" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#22262B" CornerRadius="8" Padding="14">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Spielstand übertragen" FontWeight="Bold" />
+                            <TextBlock Opacity="0.7" FontSize="12" TextWrapping="Wrap"
+                                       Text="Export als Text — z. B. um den Spielstand zwischen zwei Rechnern zu übertragen." />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Export erstellen" Command="{Binding GenerateExportCommand}" />
+                                <Button Content="📋 Kopieren" Click="OnCopyExportClick" />
+                            </StackPanel>
+                            <TextBox Text="{Binding ExportText}" IsReadOnly="True" MaxHeight="70"
+                                     TextWrapping="Wrap" FontSize="11" />
+                            <TextBox Text="{Binding ImportText}" PlaceholderText="Export-Text hier einfügen …"
+                                     MaxHeight="70" TextWrapping="Wrap" FontSize="11" />
+                            <Button Content="Importieren" Command="{Binding ImportCommand}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="#22262B" CornerRadius="8" Padding="14">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Gefahrenzone" FontWeight="Bold" Foreground="#D46A6A" />
+                            <Button Content="{Binding ResetButtonText}" Command="{Binding ResetCommand}"
+                                    Background="#6B1F1F" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="{Binding StatusText}" TextWrapping="Wrap" Opacity="0.85" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</views:ChromeWindow>

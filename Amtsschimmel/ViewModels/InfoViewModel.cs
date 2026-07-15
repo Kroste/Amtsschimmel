@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using Amtsschimmel.Services;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -37,6 +38,22 @@ public sealed partial class InfoViewModel : ObservableObject
         var plus = info.IndexOf('+');
         return plus > 0 ? info[..plus] : info;
     }
+
+    [ObservableProperty]
+    private string _updateStatusText = "";
+
+    [RelayCommand]
+    private async Task CheckForUpdates()
+    {
+        UpdateStatusText = "Prüfe auf Updates …";
+        var update = await new UpdateCheckService().CheckAsync();
+        UpdateStatusText = update is null
+            ? "✅ Amtsschimmel ist aktuell."
+            : $"🔄 Update verfügbar: {update.TagName} — über 'Releases öffnen' herunterladen.";
+    }
+
+    [RelayCommand]
+    private void OpenReleases() => OpenUrl(UpdateCheckService.ReleasesPage);
 
     [RelayCommand]
     private void OpenGitHub() => OpenUrl(GithubUrl);

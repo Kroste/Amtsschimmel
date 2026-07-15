@@ -30,7 +30,21 @@ public sealed class UiSmokeTests
         {
             var window = new MainWindow
             {
-                DataContext = new MainWindowViewModel(new GameEngine(), new SaveGameService()),
+                DataContext = new MainWindowViewModel(new GameEngine(), new SaveGameService(),
+                new SettingsService(Path.Combine(Path.GetTempPath(), "amt-test-" + Guid.NewGuid())), new UpdateCheckService()),
+            };
+            window.Show();
+            window.Close();
+        }, CancellationToken.None);
+
+    [Fact]
+    public Task SettingsWindow_XamlLaedtUndFensterOeffnet() =>
+        Session.Dispatch(() =>
+        {
+            var window = new SettingsWindow
+            {
+                DataContext = new SettingsViewModel(new GameEngine(), new SaveGameService(),
+                    new SettingsService(Path.Combine(Path.GetTempPath(), "amt-test-" + Guid.NewGuid()))),
             };
             window.Show();
             window.Close();

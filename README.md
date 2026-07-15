@@ -1,5 +1,9 @@
 # 🏛️ Amtsschimmel — Das Behörden-Incremental
 
+[![CI](https://github.com/Kroste/Amtsschimmel/actions/workflows/ci.yml/badge.svg)](https://github.com/Kroste/Amtsschimmel/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Kroste/Amtsschimmel)](https://github.com/Kroste/Amtsschimmel/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Ein Incremental Game in C# / .NET 10 / Avalonia 12. Stemple Formulare, stelle Praktikanten,
 Sachbearbeiter und ganze Dezernate ein — und wenn der Laden läuft: Verwaltungsreform!
 
@@ -19,6 +23,9 @@ Sachbearbeiter und ganze Dezernate ein — und wenn der Laden läuft: Verwaltung
 - ✨ **Goldene Formulare:** Zufällig auftauchendes Klick-Event — Sofort-Stempel oder ×7-Produktionsboost
 - 📰 **Amtsblatt:** Satirischer Nachrichten-Ticker, der auf den Spielstand reagiert
 - 📈 **Statistik:** Lifetime-Werte und Einkommensverlauf als Kurve
+- 🔄 **Update-Check:** Prüft GitHub-Releases (proxy-fähig), beim Start und manuell
+- ⚙️ **Einstellungen:** Autosave-Intervall, Ticker, Spielstand-Export/-Import als Text, Reset
+- ⌨️ **Hotkeys:** Leertaste stempelt, Tasten 1–5 wechseln die Tabs
 
 ## Lizenz
 

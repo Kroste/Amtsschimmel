@@ -62,6 +62,32 @@ public sealed partial class MainWindow : ChromeWindow
         }
     }
 
+    /// <summary>Hotkeys: Leertaste = Stempeln, 1–5 = Tab-Wechsel.</summary>
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.Handled || DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
+        switch (e.Key)
+        {
+            case Key.Space:
+                vm.StampCommand.Execute(null);
+                SpawnParticle("+" + vm.ClickPowerText, ManualParticleBrush);
+                e.Handled = true;
+                break;
+            case >= Key.D1 and <= Key.D5:
+                MainTabs.SelectedIndex = e.Key - Key.D1;
+                e.Handled = true;
+                break;
+            case >= Key.NumPad1 and <= Key.NumPad5:
+                MainTabs.SelectedIndex = e.Key - Key.NumPad1;
+                e.Handled = true;
+                break;
+        }
+    }
+
     private void OnTitleBarDoubleTapped(object? sender, TappedEventArgs e) =>
         WindowState = WindowState == WindowState.Maximized
             ? WindowState.Normal

@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using Amtsschimmel.Models;
 using NLog;
@@ -64,6 +65,34 @@ public sealed class SaveGameService
         catch (Exception ex)
         {
             Log.Error(ex, "Speichern fehlgeschlagen.");
+        }
+    }
+
+    // ---------- Spielstand-Transfer (Base64, z. B. Arbeits-Laptop ↔ Bazzite) ----------
+
+    private const string ExportPrefix = "AMT1:";
+
+    /// <summary>Serialisiert den Spielstand als kopierbaren Base64-String mit Format-Präfix.</summary>
+    public string Export(GameState state) =>
+        ExportPrefix + Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(state, JsonOptions)));
+
+    /// <summary>Parst einen Export-String; null bei falschem Präfix oder kaputten Daten.</summary>
+    public GameState? TryImport(string input)
+    {
+        try
+        {
+            var trimmed = input.Trim();
+            if (!trimmed.StartsWith(ExportPrefix, StringComparison.Ordinal))
+            {
+                return null;
+            }
+            var json = Encoding.UTF8.GetString(Convert.FromBase64String(trimmed[ExportPrefix.Length..]));
+            return JsonSerializer.Deserialize<GameState>(json, JsonOptions);
+        }
+        catch (Exception ex)
+        {
+            Log.Warn(ex, "Spielstand-Import fehlgeschlagen.");
+            return null;
         }
     }
 

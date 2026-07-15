@@ -17,6 +17,8 @@ public sealed class App : Application
         var services = new ServiceCollection()
             .AddSingleton<GameEngine>()
             .AddSingleton<SaveGameService>()
+            .AddSingleton<SettingsService>()
+            .AddSingleton<UpdateCheckService>()
             .AddSingleton<MainWindowViewModel>()
             .BuildServiceProvider();
 

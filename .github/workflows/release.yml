@@ -44,6 +44,18 @@ jobs:
           -p:Version=${{ steps.version.outputs.version }}
           -o publish/linux-x64
 
+      - name: AppImage bauen
+        run: |
+          mkdir -p AppDir/usr/bin
+          cp -r publish/linux-x64/* AppDir/usr/bin/
+          cp packaging/amtsschimmel.desktop AppDir/
+          cp Amtsschimmel/Assets/amtsschimmel.png AppDir/
+          printf '#!/bin/sh\nHERE="$(dirname "$(readlink -f "$0")")"\nexec "$HERE/usr/bin/Amtsschimmel" "$@"\n' > AppDir/AppRun
+          chmod +x AppDir/AppRun
+          curl -sSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+          ./appimagetool --appimage-extract-and-run AppDir Amtsschimmel-${{ steps.version.outputs.version }}-x86_64.AppImage
+
       - name: Archive erstellen
         run: |
           cd publish/win-x64 && zip -r ../../Amtsschimmel-${{ steps.version.outputs.version }}-win-x64.zip . && cd ../..
@@ -57,3 +69,4 @@ jobs:
           files: |
             Amtsschimmel-${{ steps.version.outputs.version }}-win-x64.zip
             Amtsschimmel-${{ steps.version.outputs.version }}-linux-x64.tar.gz
+            Amtsschimmel-${{ steps.version.outputs.version }}-x86_64.AppImage
