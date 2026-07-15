@@ -46,7 +46,7 @@ jobs:
         shell: pwsh
         run: Compress-Archive -Path publish/win-x64/* -DestinationPath "Amtsschimmel-${{ steps.ver.outputs.v }}-win-x64.zip"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: windows
           path: Amtsschimmel-*-win-x64.zip
@@ -90,7 +90,7 @@ jobs:
       - name: AppImage bauen
         run: bash packaging/linux/build-appimage.sh "${{ steps.ver.outputs.v }}" publish/linux-x64
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: linux
           path: |
