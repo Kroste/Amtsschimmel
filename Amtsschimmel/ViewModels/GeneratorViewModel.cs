@@ -49,11 +49,18 @@ public sealed partial class GeneratorViewModel : ObservableObject
     [ObservableProperty]
     private bool _isVisible;
 
+    /// <summary>true, solange noch nicht genug Reformen für diesen Generator durchgeführt wurden.</summary>
+    [ObservableProperty]
+    private bool _isReformLocked;
+
+    public string ReformLockText { get; }
+
     public GeneratorViewModel(GameEngine engine, GeneratorDefinition definition)
     {
         _engine = engine;
         Definition = definition;
         AutoBuyerCostText = NumberFormatter.Format(definition.AutoBuyerCost);
+        ReformLockText = $"🔒 Freigeschaltet ab Verwaltungsreform Nr. {definition.MinReformen}";
     }
 
     /// <summary>Wird vom Haupt-Timer aufgerufen; aktualisiert alle Anzeigewerte.</summary>
@@ -68,12 +75,13 @@ public sealed partial class GeneratorViewModel : ObservableObject
             AutoBuyerEnabled = state.AutoBuyerEnabled;
         }
 
+        IsReformLocked = !_engine.ReformRequirementMet(Definition.MinReformen);
         var cost = _engine.NextCost(Definition);
         CostText = NumberFormatter.Format(cost);
         Cost10Text = NumberFormatter.Format(_engine.BulkCost(Definition, 10));
-        CanBuy = _engine.CanAfford(cost);
-        CanBuy10 = _engine.CanAfford(_engine.BulkCost(Definition, 10));
-        CanBuyAutoBuyer = !state.AutoBuyerOwned && _engine.CanAfford(Definition.AutoBuyerCost);
+        CanBuy = !IsReformLocked && _engine.CanAfford(cost);
+        CanBuy10 = !IsReformLocked && _engine.CanAfford(_engine.BulkCost(Definition, 10));
+        CanBuyAutoBuyer = !IsReformLocked && !state.AutoBuyerOwned && _engine.CanAfford(Definition.AutoBuyerCost);
         ProductionText = NumberFormatter.Format(_engine.ProductionPerSecond(Definition)) + "/s";
 
         // Sichtbar ab: schon gekauft ODER 40 % der Basiskosten erspielt.

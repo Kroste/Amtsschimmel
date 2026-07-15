@@ -39,6 +39,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private string _clickPowerText = "1";
 
     [ObservableProperty]
+    private string _autoClickText = "";
+
+    [ObservableProperty]
+    private bool _isAutoClickVisible;
+
+    [ObservableProperty]
+    private string _nextThresholdText = "";
+
+    [ObservableProperty]
     private string _clickUpgradeCostText = "";
 
     [ObservableProperty]
@@ -137,7 +146,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         var state = _engine.State;
         StempelText = NumberFormatter.Format(state.Stempel);
-        PerSecondText = NumberFormatter.Format(_engine.TotalProductionPerSecond()) + "/s";
+        PerSecondText = NumberFormatter.Format(_engine.EffectiveIncomePerSecond()) + "/s";
+        var autoClicks = _engine.AutoClicksPerSecond;
+        IsAutoClickVisible = autoClicks > 0;
+        AutoClickText = $"🤖 Stempelautomat: {autoClicks:0.#}×/s (+{NumberFormatter.Format(_engine.ClickPower * autoClicks)}/s)";
         ClickPowerText = NumberFormatter.Format(_engine.ClickPower);
         ClickUpgradeCostText = NumberFormatter.Format(_engine.ClickUpgradeCost);
         CanBuyClickUpgrade = _engine.CanAfford(_engine.ClickUpgradeCost);
@@ -149,9 +161,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
         TotalReformen = state.TotalReformen;
         PrestigeProgressText = _engine.CanPrestige
             ? $"Reform bereit: +{PendingParagraphen} §"
-            : $"Noch {NumberFormatter.Format(Math.Max(0, GameEngine.PrestigeThreshold - state.TotalEarnedThisRun))} Stempel bis zur ersten Reform";
+            : $"Noch {NumberFormatter.Format(Math.Max(0, _engine.CurrentPrestigeThreshold - state.TotalEarnedThisRun))} Stempel bis zur nächsten Reform";
+        NextThresholdText = $"Aktuelle Reform-Schwelle: {NumberFormatter.Format(_engine.CurrentPrestigeThreshold)} Stempel (verzehnfacht sich mit jeder Reform)";
         AchievementCountText = $"{state.UnlockedAchievements.Count} / {GameDefinitions.Achievements.Count}";
-        ResearchCountText = $"{state.ResearchedIds.Count} / {ResearchDefinitions.All.Count}";
+        ResearchCountText = $"{state.ResearchLevels.Values.Sum()} Stufen in {state.ResearchLevels.Count} / {ResearchDefinitions.All.Count} Fortbildungen";
 
         foreach (var generator in Generators)
         {

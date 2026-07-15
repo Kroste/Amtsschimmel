@@ -44,12 +44,12 @@ public sealed class ResearchTests
     }
 
     [Fact]
-    public void BuyResearch_ZiehtKostenAbUndSchaltetFrei()
+    public void BuyResearch_ZiehtKostenAbUndErhoehtStufe()
     {
         var engine = EngineWithStempel(1_000);
         Assert.True(engine.BuyResearch(Get("zehnfinger")));
         Assert.Equal(500, engine.State.Stempel);
-        Assert.True(engine.IsResearched(Get("zehnfinger")));
+        Assert.Equal(1, engine.ResearchLevel(Get("zehnfinger")));
     }
 
     [Fact]
@@ -63,20 +63,56 @@ public sealed class ResearchTests
     }
 
     [Fact]
-    public void BuyResearch_ScheitertBeiDoppelkauf()
+    public void Mehrfachforschung_KostenWachsenProStufe()
     {
-        var engine = EngineWithStempel(10_000);
+        // zehnfinger: Basis 500, Wachstum ×8 → Stufe 2 kostet 4.000.
+        var engine = EngineWithStempel(4_500);
         Assert.True(engine.BuyResearch(Get("zehnfinger")));
-        Assert.False(engine.BuyResearch(Get("zehnfinger")));
+        Assert.Equal(4_000, engine.NextResearchCost(Get("zehnfinger")));
+        Assert.True(engine.BuyResearch(Get("zehnfinger")));
+        Assert.Equal(2, engine.ResearchLevel(Get("zehnfinger")));
+        Assert.Equal(0, engine.State.Stempel);
     }
 
     [Fact]
-    public void ClickMultiplier_WirktAufKlickkraft()
+    public void Mehrfachforschung_EffekteStapelnMultiplikativ()
     {
-        var engine = EngineWithStempel(500);
+        var engine = new GameEngine();
         var basis = engine.ClickPower;
-        engine.BuyResearch(Get("zehnfinger")); // ×2
-        Assert.Equal(basis * 2, engine.ClickPower, precision: 10);
+        engine.State.ResearchLevels["zehnfinger"] = 3; // ×2 je Stufe → ×8
+        Assert.Equal(basis * 8, engine.ClickPower, precision: 10);
+    }
+
+    [Fact]
+    public void Mehrfachforschung_StopptBeiMaximalstufe()
+    {
+        var engine = EngineWithStempel(double.MaxValue / 2);
+        var zehnfinger = Get("zehnfinger"); // MaxLevel 5
+        for (var i = 0; i < 5; i++)
+        {
+            Assert.True(engine.BuyResearch(zehnfinger));
+        }
+        Assert.True(engine.IsMaxed(zehnfinger));
+        Assert.False(engine.BuyResearch(zehnfinger));
+        Assert.Equal(5, engine.ResearchLevel(zehnfinger));
+    }
+
+    [Fact]
+    public void EndlosForschung_HatKeineMaximalstufe()
+    {
+        var engine = EngineWithStempel(double.MaxValue / 2);
+        var abbau = Get("buerokratieabbau");
+        engine.State.ResearchLevels["lean_admin"] = 1; // Voraussetzung
+        engine.State.TotalReformen = 3;                // seit v1.3.0 hinter Reform 3 gesperrt
+
+        for (var i = 0; i < 20; i++)
+        {
+            Assert.True(engine.BuyResearch(abbau));
+        }
+        Assert.False(engine.IsMaxed(abbau));
+        Assert.Equal(20, engine.ResearchLevel(abbau));
+        // ×1,1 je Stufe → ×1,1^20; die Voraussetzung lean_admin steuert selbst ×2 bei.
+        Assert.Equal(Math.Pow(1.1, 20) * 2, engine.ResearchMultiplierFor("praktikant"), precision: 8);
     }
 
     [Fact]
@@ -89,23 +125,12 @@ public sealed class ResearchTests
     }
 
     [Fact]
-    public void AllGeneratorsMultiplier_WirktUeberall()
+    public void CostReduction_StapeltJeStufeUndUeberKnoten()
     {
-        var engine = EngineWithStempel(10_000);
-        engine.BuyResearch(Get("ordner")); // ×1,25 alle
-        Assert.Equal(1.25, engine.ResearchMultiplierFor("ki_cloud"), precision: 10);
-    }
-
-    [Fact]
-    public void CostReduction_ReduziertGeneratorkostenMultiplikativ()
-    {
-        var engine = EngineWithStempel(1e9);
-        engine.State.ResearchedIds.Add("sammelbestellung"); // −5 %
-        engine.State.ResearchedIds.Add("beschaffung");      // −10 %
-        Assert.Equal(0.95 * 0.90, engine.CostFactor, precision: 10);
-
-        var praktikant = GameDefinitions.Generators[0];
-        Assert.Equal(15 * 0.95 * 0.90, engine.NextCost(praktikant), precision: 10);
+        var engine = new GameEngine();
+        engine.State.ResearchLevels["sammelbestellung"] = 3; // 0,95³
+        engine.State.ResearchLevels["beschaffung"] = 2;      // 0,90²
+        Assert.Equal(Math.Pow(0.95, 3) * Math.Pow(0.90, 2), engine.CostFactor, precision: 10);
     }
 
     [Fact]
@@ -115,21 +140,21 @@ public sealed class ResearchTests
         Assert.Equal(0.5, engine.OfflineEfficiency);
         Assert.Equal(TimeSpan.FromHours(8), engine.OfflineCap);
 
-        engine.State.ResearchedIds.Add("gleitzeit");  // 75 %
-        engine.State.ResearchedIds.Add("homeoffice"); // 24 h
+        engine.State.ResearchLevels["gleitzeit"] = 1;  // 75 %
+        engine.State.ResearchLevels["homeoffice"] = 1; // 24 h
         Assert.Equal(0.75, engine.OfflineEfficiency);
         Assert.Equal(TimeSpan.FromHours(24), engine.OfflineCap);
     }
 
     [Fact]
-    public void ParagraphBonus_ErhoehtReformErtrag()
+    public void ParagraphBonus_StapeltJeStufe()
     {
         var engine = new GameEngine();
         engine.State.TotalEarnedThisRun = 16e6; // √16 = 4 Basis-Paragraphen
         Assert.Equal(4, engine.PendingParagraphen);
 
-        engine.State.ResearchedIds.Add("reformkommission"); // +25 %
-        Assert.Equal(5, engine.PendingParagraphen); // 4 × 1,25 = 5
+        engine.State.ResearchLevels["reformkommission"] = 2; // (1,25)² = 1,5625
+        Assert.Equal(6, engine.PendingParagraphen); // ⌊4 × 1,5625⌋ = 6
     }
 
     [Fact]
@@ -137,10 +162,26 @@ public sealed class ResearchTests
     {
         var engine = new GameEngine();
         engine.State.TotalEarnedThisRun = 4e6;
-        engine.State.ResearchedIds.Add("zehnfinger");
+        engine.State.ResearchLevels["zehnfinger"] = 3;
 
         engine.Prestige();
 
+        Assert.Empty(engine.State.ResearchLevels);
+    }
+
+    [Fact]
+    public void LoadState_MigriertAlteEinstufigeForschung()
+    {
+        // Save aus v1.1.0: ResearchedIds statt ResearchLevels.
+        var oldState = new GameState();
+        oldState.ResearchedIds.Add("zehnfinger");
+        oldState.ResearchedIds.Add("ordner");
+
+        var engine = new GameEngine();
+        engine.LoadState(oldState);
+
+        Assert.Equal(1, engine.State.GetResearchLevel("zehnfinger"));
+        Assert.Equal(1, engine.State.GetResearchLevel("ordner"));
         Assert.Empty(engine.State.ResearchedIds);
     }
 }

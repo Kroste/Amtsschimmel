@@ -6,7 +6,8 @@ public sealed record GeneratorDefinition(
     string Name,
     string Description,
     double BaseCost,
-    double BaseProduction)
+    double BaseProduction,
+    int MinReformen = 0)
 {
     /// <summary>Kostenwachstum pro gekaufter Einheit (Cookie-Clicker-Standard).</summary>
     public const double CostGrowth = 1.15;
@@ -42,8 +43,8 @@ public static class GameDefinitions
         new("dezernat",      "Dezernat",              "Koordiniert Fachbereiche. Niemand weiß, wie.",             1.4e6,     1_400),
         new("rathaus",       "Rathaus",               "Das Herz der Stadt. Schlägt in Dreifachausfertigung.",     2.0e7,     7_800),
         new("landesbehoerde","Landesbehörde",         "Stempelt jetzt auch landesweit einheitlich. Fast.",        3.3e8,     44_000),
-        new("ministerium",   "Bundesministerium",     "Erlässt Verordnungen zur Stempeloptimierung.",             5.1e9,     260_000),
-        new("ki_cloud",      "KI-Verwaltungscloud",   "Stempelt digital. Der Amtsschimmel wiehert elektrisch.",   7.5e10,    1.6e6),
+        new("ministerium",   "Bundesministerium",     "Erlässt Verordnungen zur Stempeloptimierung.",             5.1e9,     260_000,  MinReformen: 1),
+        new("ki_cloud",      "KI-Verwaltungscloud",   "Stempelt digital. Der Amtsschimmel wiehert elektrisch.",   7.5e10,    1.6e6,    MinReformen: 2),
     ];
 
     public static readonly IReadOnlyList<AchievementDefinition> Achievements =
@@ -63,8 +64,9 @@ public static class GameDefinitions
         new("auto_all",      "Vollautomatisiert",     "Kaufe alle Auto-Buyer.",                        s => GameDefinitions.Generators.All(g => s.GetGenerator(g.Id).AutoBuyerOwned)),
         new("reform_first",  "Verwaltungsreform",     "Führe deine erste Reform durch.",               s => s.TotalReformen >= 1),
         new("reform_5",      "Reformstau gelöst",     "5 Verwaltungsreformen durchgeführt.",           s => s.TotalReformen >= 5),
-        new("research_first","Bildungsauftrag",       "Schließe deine erste Fortbildung ab.",          s => s.ResearchedIds.Count >= 1),
-        new("research_all",  "Summa cum laude",       "Erforsche die komplette Verwaltungsakademie.",  s => ResearchDefinitions.All.All(r => s.ResearchedIds.Contains(r.Id))),
+        new("research_first","Bildungsauftrag",       "Schließe deine erste Fortbildung ab.",          s => s.ResearchLevels.Count >= 1),
+        new("research_all",  "Summa cum laude",       "Erforsche jede Fortbildung mindestens einmal.", s => ResearchDefinitions.All.All(r => s.GetResearchLevel(r.Id) >= 1)),
+        new("research_lvl25","Lebenslanges Lernen",   "Erreiche 25 Fortbildungsstufen insgesamt.",     s => s.ResearchLevels.Values.Sum() >= 25),
         new("para_100",      "Grundgesetz 2.0",       "Sammle 100 Paragraphen.",                       s => s.Paragraphen >= 100),
         new("click_lvl_5",   "Turbo-Stempelkissen",   "Klick-Upgrade auf Stufe 5.",                    s => s.ClickUpgradeLevel >= 5),
     ];

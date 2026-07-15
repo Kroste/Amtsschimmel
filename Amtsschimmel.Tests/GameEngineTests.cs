@@ -63,7 +63,7 @@ public sealed class GameEngineTests
     public void Prestige_NichtMoeglichUnterSchwelle()
     {
         var engine = new GameEngine();
-        engine.State.TotalEarnedThisRun = GameEngine.PrestigeThreshold - 1;
+        engine.State.TotalEarnedThisRun = GameEngine.BasePrestigeThreshold - 1;
         Assert.False(engine.CanPrestige);
         Assert.Equal(0, engine.Prestige());
     }

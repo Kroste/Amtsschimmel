@@ -36,6 +36,8 @@
                                    HorizontalAlignment="Center" />
                         <TextBlock Text="Stempel" Opacity="0.7" HorizontalAlignment="Center" />
                         <TextBlock Text="{Binding PerSecondText}" Opacity="0.7" HorizontalAlignment="Center" />
+                        <TextBlock Text="{Binding AutoClickText}" Opacity="0.7" FontSize="12"
+                                   HorizontalAlignment="Center" IsVisible="{Binding IsAutoClickVisible}" />
                     </StackPanel>
 
                     <Button Command="{Binding StampCommand}"
@@ -105,6 +107,8 @@
                                                 <TextBlock Opacity="0.8" FontSize="12">
                                                     <Run Text="Produziert " /><Run Text="{Binding ProductionText}" />
                                                 </TextBlock>
+                                                <TextBlock Text="{Binding ReformLockText}" FontSize="12"
+                                                           Foreground="#E0B14C" IsVisible="{Binding IsReformLocked}" />
                                             </StackPanel>
                                             <StackPanel Grid.Column="1" Spacing="6" MinWidth="200">
                                                 <Button Command="{Binding BuyCommand}" IsEnabled="{Binding CanBuy}"
@@ -144,7 +148,7 @@
                     <ScrollViewer>
                         <StackPanel Margin="0,8,8,0">
                             <TextBlock Margin="4,0,0,8" Opacity="0.7" FontSize="12" TextWrapping="Wrap">
-                                <Run Text="Verwaltungsakademie — Fortbildungen verbessern dein Amt dauerhaft, verfallen aber bei einer Reform. Abgeschlossen: " /><Run Text="{Binding ResearchCountText}" />
+                                <Run Text="Verwaltungsakademie — Fortbildungen verbessern dein Amt, viele sind mehrstufig ausbaubar. Alles verfällt bei einer Reform. Stand: " /><Run Text="{Binding ResearchCountText}" />
                             </TextBlock>
                             <ItemsControl ItemsSource="{Binding Research}">
                                 <ItemsControl.ItemTemplate>
@@ -153,9 +157,11 @@
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <StackPanel Grid.Column="0" Spacing="2">
                                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                                        <TextBlock Text="✅" IsVisible="{Binding IsResearched}" />
+                                                        <TextBlock Text="✅" IsVisible="{Binding IsMaxed}" />
                                                         <TextBlock Text="🔒" IsVisible="{Binding IsLocked}" Opacity="0.6" />
                                                         <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="15" />
+                                                        <TextBlock Text="{Binding LevelText}" FontSize="12" Opacity="0.7"
+                                                                   VerticalAlignment="Center" Foreground="#E0B14C" />
                                                     </StackPanel>
                                                     <TextBlock Text="{Binding Description}" Opacity="0.65" FontSize="12"
                                                                TextWrapping="Wrap" />
@@ -166,13 +172,13 @@
                                                 </StackPanel>
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" MinWidth="180">
                                                     <Button Command="{Binding BuyCommand}" IsEnabled="{Binding CanResearch}"
-                                                            IsVisible="{Binding !IsResearched}"
+                                                            IsVisible="{Binding !IsMaxed}"
                                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
                                                         <TextBlock>
                                                             <Run Text="Fortbilden — " /><Run Text="{Binding CostText}" />
                                                         </TextBlock>
                                                     </Button>
-                                                    <TextBlock Text="Abgeschlossen" IsVisible="{Binding IsResearched}"
+                                                    <TextBlock Text="Maximalstufe" IsVisible="{Binding IsMaxed}"
                                                                Opacity="0.6" HorizontalAlignment="Center" />
                                                 </StackPanel>
                                             </Grid>
@@ -196,6 +202,8 @@
                         <Border Background="#22262B" CornerRadius="8" Padding="16">
                             <StackPanel Spacing="8">
                                 <TextBlock Text="{Binding PrestigeProgressText}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding NextThresholdText}" FontSize="12" Opacity="0.7"
+                                           TextWrapping="Wrap" />
                                 <TextBlock FontSize="12" Opacity="0.7">
                                     <Run Text="Bisherige Reformen: " /><Run Text="{Binding TotalReformen}" />
                                     <Run Text="   |   Paragraphen: " /><Run Text="{Binding Paragraphen}" /><Run Text=" §" />
@@ -210,9 +218,10 @@
                             </StackPanel>
                         </Border>
                         <TextBlock TextWrapping="Wrap" FontSize="12" Opacity="0.6">
-                            Formel: Paragraphen = ⌊√(verdiente Stempel / 1 Mio.)⌋. Mehr verdienen vor der
-                            Reform lohnt sich also — aber mit abnehmendem Grenzertrag, wie es sich für
-                            eine ordentliche Verwaltung gehört.
+                            Formel: Paragraphen = ⌊√(verdiente Stempel / Schwelle)⌋ — die Schwelle
+                            verzehnfacht sich mit jeder Reform. Manche Generatoren und Fortbildungen
+                            (u. a. Bundesministerium, KI-Cloud, Stempelautomat, Exzellenz-Zweig)
+                            schalten erst nach bestimmten Reformen frei.
                         </TextBlock>
                     </StackPanel>
                 </TabItem>

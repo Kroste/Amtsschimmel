@@ -32,8 +32,13 @@ public sealed class GameState
     /// <summary>Ids der freigeschalteten Achievements.</summary>
     public HashSet<string> UnlockedAchievements { get; set; } = new();
 
-    /// <summary>Ids der abgeschlossenen Fortbildungen (verfallen bei Reformen).</summary>
+    /// <summary>Stufen der Fortbildungen (Id → Level). Verfallen bei Reformen.</summary>
+    public Dictionary<string, int> ResearchLevels { get; set; } = new();
+
+    /// <summary>Veraltet (v1.1.0): einstufige Forschung. Wird beim Laden nach <see cref="ResearchLevels"/> migriert.</summary>
     public HashSet<string> ResearchedIds { get; set; } = new();
+
+    public int GetResearchLevel(string id) => ResearchLevels.GetValueOrDefault(id);
 
     /// <summary>Zeitpunkt des letzten Speicherns (UTC) — Basis für Offline-Fortschritt.</summary>
     public DateTime LastSavedUtc { get; set; } = DateTime.UtcNow;

@@ -15,14 +15,22 @@ public sealed partial class ResearchViewModel : ObservableObject
     public string Name => Definition.Name;
     public string Description => Definition.Description;
     public string EffectText => Definition.EffectText;
-    public string CostText { get; }
 
     /// <summary>Namen der Voraussetzungen, z. B. "Benötigt: Gleitzeitmodell".</summary>
     public string PrerequisiteText { get; }
     public bool HasPrerequisites { get; }
 
     [ObservableProperty]
-    private bool _isResearched;
+    private int _level;
+
+    [ObservableProperty]
+    private string _levelText = "";
+
+    [ObservableProperty]
+    private string _costText = "";
+
+    [ObservableProperty]
+    private bool _isMaxed;
 
     [ObservableProperty]
     private bool _isLocked;
@@ -34,20 +42,32 @@ public sealed partial class ResearchViewModel : ObservableObject
     {
         _engine = engine;
         Definition = definition;
-        CostText = NumberFormatter.Format(definition.Cost);
-        var prereqNames = (definition.Prerequisites ?? [])
+        var requirements = (definition.Prerequisites ?? [])
             .Select(id => ResearchDefinitions.All.FirstOrDefault(r => r.Id == id)?.Name ?? id)
-            .ToArray();
-        HasPrerequisites = prereqNames.Length > 0;
-        PrerequisiteText = HasPrerequisites ? "Benötigt: " + string.Join(", ", prereqNames) : "";
+            .ToList();
+        if (definition.MinReformen > 0)
+        {
+            requirements.Add($"Verwaltungsreform Nr. {definition.MinReformen}");
+        }
+        HasPrerequisites = requirements.Count > 0;
+        PrerequisiteText = HasPrerequisites ? "Benötigt: " + string.Join(", ", requirements) : "";
     }
 
     /// <summary>Wird vom Haupt-Timer aufgerufen; aktualisiert alle Anzeigewerte.</summary>
     public void Refresh()
     {
-        IsResearched = _engine.IsResearched(Definition);
-        IsLocked = !IsResearched && !_engine.PrerequisitesMet(Definition);
+        Level = _engine.ResearchLevel(Definition);
+        IsMaxed = _engine.IsMaxed(Definition);
+        IsLocked = Level == 0
+            && (!_engine.PrerequisitesMet(Definition) || !_engine.ReformRequirementMet(Definition.MinReformen));
         CanResearch = _engine.CanResearch(Definition);
+        CostText = IsMaxed ? "" : NumberFormatter.Format(_engine.NextResearchCost(Definition));
+        LevelText = Definition switch
+        {
+            { IsEndless: true } => $"Stufe {Level} / ∞",
+            { IsRepeatable: true } => $"Stufe {Level} / {Definition.MaxLevel}",
+            _ => Level >= 1 ? "Abgeschlossen" : "",
+        };
     }
 
     [RelayCommand]
