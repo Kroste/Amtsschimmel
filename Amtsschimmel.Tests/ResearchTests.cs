@@ -125,6 +125,29 @@ public sealed class ResearchTests
     }
 
     [Fact]
+    public void Matrixorg_BoosetFachbereichUndDezernat()
+    {
+        // Schließt die Mittelbau-Lücke: fachbereich/dezernat kriegen den ×2-Boost, andere nicht.
+        var engine = new GameEngine();
+        engine.State.ResearchLevels["matrixorg"] = 3; // 2³ = 8
+        Assert.Equal(8, engine.ResearchMultiplierFor("fachbereich"), precision: 10);
+        Assert.Equal(8, engine.ResearchMultiplierFor("dezernat"), precision: 10);
+        Assert.Equal(1, engine.ResearchMultiplierFor("amtsleiter"), precision: 10);
+        Assert.Equal(1, engine.ResearchMultiplierFor("rathaus"), precision: 10);
+    }
+
+    [Fact]
+    public void Foederalismus_BoosetRathausUndLandesbehoerde()
+    {
+        var engine = new GameEngine();
+        engine.State.ResearchLevels["foederalismus"] = 3;
+        Assert.Equal(8, engine.ResearchMultiplierFor("rathaus"), precision: 10);
+        Assert.Equal(8, engine.ResearchMultiplierFor("landesbehoerde"), precision: 10);
+        Assert.Equal(1, engine.ResearchMultiplierFor("dezernat"), precision: 10);
+        Assert.Equal(1, engine.ResearchMultiplierFor("ministerium"), precision: 10);
+    }
+
+    [Fact]
     public void CostReduction_StapeltJeStufeUndUeberKnoten()
     {
         var engine = new GameEngine();

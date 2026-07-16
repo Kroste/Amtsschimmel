@@ -10,7 +10,7 @@
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.8.1)
+## Aktueller Stand (v1.8.2)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
@@ -18,7 +18,7 @@
 - **Reform-Gating:** `MinReformen` an Generator- und Forschungsdefinitionen — Bundesministerium (1), KI-Cloud (2), Stempelautomat (1), lean_admin (1), ki_sachbearbeitung/verwaltungsexzellenz (2), buerokratieabbau (3). UI zeigt 🔒-Hinweis; Engine blockt Kauf in `BuyGenerator`/`CanResearch`.
 - **Auto-Stempeln:** Forschung „Pneumatischer Stempelautomat" (Effekttyp `AutoClick`, additiv je Stufe, max. 10 Klicks/s). Erträgt Klickkraft × Rate, zählt NICHT als manueller Klick (Klick-Achievements!), wirkt auch offline (`EffectiveIncomePerSecond`). Visuell: blaue "+X"-Partikel (Timer 250 ms im Code-Behind, visuell auf 4/s gedeckelt — bei höherer Rate trägt jedes Partikel den aggregierten anteiligen Betrag, damit die angezeigte Summe stimmt; pausiert bei minimiertem Fenster).
 - **Auto-Buyer:** pro Generator kaufbar (250× Basiskosten), per ToggleSwitch schaltbar, kauft 1×/Tick wenn bezahlbar.
-- **Forschung ("Verwaltungsakademie"):** 16 Fortbildungen mit Voraussetzungsbaum, **mehrstufig**: `MaxLevel` (1 = einmalig, n = wiederholbar, 0 = endlos, z. B. "Bürokratieabbau" ×1,1 je Stufe), Kosten je Stufe ×`CostGrowth` (Standard ×8). Effekte stapeln multiplikativ je Stufe (`value^level` bzw. `(1−v)^level` bei Rabatten, `(1+v)^level` bei Paragraphen-Boni). Verfallen bei Reformen. 7 Effekttypen: Generator-/Global-/Klick-Multiplikator, Kostenreduktion, Offline-Effizienz (50→75 %), Offline-Cap (8→24 h), Paragraphen-Bonus.
+- **Forschung ("Verwaltungsakademie"):** 18 Fortbildungen mit Voraussetzungsbaum, **mehrstufig**: `MaxLevel` (1 = einmalig, n = wiederholbar, 0 = endlos, z. B. "Bürokratieabbau" ×1,1 je Stufe), Kosten je Stufe ×`CostGrowth` (Standard ×8). Effekte stapeln multiplikativ je Stufe (`value^level` bzw. `(1−v)^level` bei Rabatten, `(1+v)^level` bei Paragraphen-Boni). Verfallen bei Reformen. 7 Effekttypen: Generator-/Global-/Klick-Multiplikator, Kostenreduktion, Offline-Effizienz (50→75 %), Offline-Cap (8→24 h), Paragraphen-Bonus. Gezielte Generator-Boosts decken jetzt lückenlos alle Ränge ab: kaffeekueche (Praktikant/Sachbearbeiter), flurfunk (Team-/Amtsleiter), **matrixorg (Fachbereich/Dezernat, MinReformen 1)**, **foederalismus (Rathaus/Landesbehörde, MinReformen 2)**, ki_sachbearbeitung (Ministerium/KI-Cloud).
 - **Achievements:** 22 Stück (Klick-Achievements zählen nur manuelle Klicks), je +1 % Produktion, Toast-Benachrichtigung, verdeckt bis Freischaltung.
 - **Klick-Upgrade („Stempelkissen"):** Klickkraft = 2^Stufe, Kosten ×12 pro Stufe.
 - **Offline-Fortschritt:** 50 % Effizienz, Cap 8 h, Banner beim Start.
@@ -36,7 +36,7 @@
 - **Release-Automation:** `scripts/release.sh` + `scripts/release.ps1` (Version aus `Directory.Build.props`, prüft uncommittete/ungepushte Änderungen, Tag-Kollision mit Rückfrage, annotierter Tag + Push). Pure ASCII (PowerShell-5.1-ANSI-Falle), `$PSNativeCommandUseErrorActionPreference = $false` gegen pwsh-7.4-Abbrüche bei git-Exit-Codes. VS-Code-Tasks: `release (tag + push)` und `clean-hard`.
 - Avalonia-12-Falle: `Watermark` heißt jetzt `PlaceholderText`.
 - **Persistenz:** JSON-Savegame (atomares Schreiben via tmp+move), Autosave 30 s + bei Exit, korrupte Saves werden gesichert statt gelöscht.
-- **Tests:** 61 xUnit-Tests (inkl. Export/Import-Roundtrip, Versions-Parsing, Settings-Roundtrip, SettingsWindow-Smoke-Test): Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
+- **Tests:** 63 xUnit-Tests (inkl. Export/Import-Roundtrip, Versions-Parsing, Settings-Roundtrip, SettingsWindow-Smoke-Test): Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
 
 ## Roadmap
 
