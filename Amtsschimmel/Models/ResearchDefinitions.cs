@@ -150,6 +150,14 @@ public static class ResearchDefinitions
             Prerequisites: ["sammelbestellung"],
             MaxLevel: 3, CostGrowth: 15),
 
+        new("matrixorg", "Matrixorganisation",
+            "Fachbereiche und Dezernate melden alles doppelt. Fördert die Verantwortungsdiffusion.",
+            5e6, ResearchEffectType.GeneratorMultiplier, 2,
+            TargetGeneratorIds: ["fachbereich", "dezernat"],
+            Prerequisites: ["flurfunk"],
+            MaxLevel: 3, CostGrowth: 10,
+            MinReformen: 1),
+
         new("reformkommission", "Reformkommission",
             "Ein Gremium, das Reformen vorbereitet: je Sitzungsperiode +25 % Paragraphen.",
             5e8, ResearchEffectType.ParagraphBonus, 0.25,
@@ -168,6 +176,14 @@ public static class ResearchDefinitions
             1e10, ResearchEffectType.GeneratorMultiplier, 3,
             TargetGeneratorIds: ["ministerium", "ki_cloud"],
             Prerequisites: ["lean_admin"],
+            MinReformen: 2),
+
+        new("foederalismus", "Föderalismusreform",
+            "Ein Kompromiss zwischen Bund, Ländern und Kommunen. Rathäuser und Landesbehörden stempeln jetzt widerspruchsfrei.",
+            5e8, ResearchEffectType.GeneratorMultiplier, 2,
+            TargetGeneratorIds: ["rathaus", "landesbehoerde"],
+            Prerequisites: ["matrixorg"],
+            MaxLevel: 3, CostGrowth: 10,
             MinReformen: 2),
 
         new("verwaltungsexzellenz", "Verwaltungsexzellenz-Cluster",
