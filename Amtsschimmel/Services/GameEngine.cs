@@ -407,7 +407,7 @@ public sealed class GameEngine
     public const double VictoryCost = 1e18;
 
     /// <summary>Mindestanzahl Reformen für die Vollendung.</summary>
-    public const int VictoryMinReformen = 25;
+    public const int VictoryMinReformen = 10;
 
     /// <summary>Alle Fortbildungen mindestens einmal erforscht?</summary>
     public bool AllResearchCompleted =>

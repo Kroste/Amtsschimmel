@@ -10,7 +10,7 @@
 - **Konventionen:** Compiled Bindings (`AvaloniaUseCompiledBindingsByDefault`), Logs & Savegame unter `%APPDATA%/Amtsschimmel` bzw. `~/.config/Amtsschimmel`.
 - Kommunikation auf Deutsch, informelles „du".
 
-## Aktueller Stand (v1.9.0)
+## Aktueller Stand (v1.9.1)
 
 - **Kern-Loop:** 10 Ticks/s via `DispatcherTimer`, Delta-Zeit-basiert (robust gegen Jitter).
 - **Generatoren:** 10 Stück (Praktikant → KI-Verwaltungscloud), Kostenwachstum ×1,15 pro Einheit, Bulk-Kauf ×10 (geometrische Reihe), progressive Sichtbarkeit (ab 40 % der Basiskosten erspielt).
@@ -35,13 +35,13 @@
 - **Release-Workflow (NetScanner-/Checkmk-Muster):** Drei Jobs — `build-windows` (windows-latest, nativ: Publish → ZIP via Compress-Archive), `build-linux` (Publish → tar.gz + AppImage via `packaging/linux/build-appimage.sh`), `release` (nur bei Tag: sammelt Artifacts via download-artifact, softprops/action-gh-release mit `fail_on_unmatched_files`). Beide Build-Jobs laden ihre Pakete als **Artifacts** hoch (7 Tage) — Download-Pakete gibt es also bei JEDEM Lauf, auch via `workflow_dispatch` ohne Tag (Version dann `0.0.0-dev.<run>`); der Release-Job wird dabei übersprungen. Tests laufen in beiden Build-Jobs vor dem Publish.
 - **Release-Automation:** `scripts/release.sh` + `scripts/release.ps1` (Version aus `Directory.Build.props`, prüft uncommittete/ungepushte Änderungen, Tag-Kollision mit Rückfrage, annotierter Tag + Push). Pure ASCII (PowerShell-5.1-ANSI-Falle), `$PSNativeCommandUseErrorActionPreference = $false` gegen pwsh-7.4-Abbrüche bei git-Exit-Codes. VS-Code-Tasks: `release (tag + push)` und `clean-hard`.
 - Avalonia-12-Falle: `Watermark` heißt jetzt `PlaceholderText`.
-- **Siegesbedingung ("Verwaltungsvollendung"):** Finales Kaufziel "Goldener Aktendeckel" im Reform-Tab. Bedingungen (Checkliste live): alle Fortbildungen ≥ Stufe 1, ≥ 25 Reformen (`VictoryMinReformen`), 1e18 Stempel (`VictoryCost`). Kauf → `GameEngine.Win()` setzt `HasWon`/`WonAtUtc`/`WonAfterPlaySeconds`, öffnet `VictoryWindow` (Sieg-Statistiken, "Weiterstempeln"). Danach Endlosmodus — Reformen etc. laufen weiter, Sieg bleibt. Achievement Nr. 23 "Der Amtsschimmel". double-Falle in Tests: `1e18 − 1 == 1e18` (ULP ≈ 128).
+- **Siegesbedingung ("Verwaltungsvollendung"):** Finales Kaufziel "Goldener Aktendeckel" im Reform-Tab. Bedingungen (Checkliste live): alle Fortbildungen ≥ Stufe 1, ≥ 10 Reformen (`VictoryMinReformen`), 1e18 Stempel (`VictoryCost`). Kauf → `GameEngine.Win()` setzt `HasWon`/`WonAtUtc`/`WonAfterPlaySeconds`, öffnet `VictoryWindow` (Sieg-Statistiken, "Weiterstempeln"). Danach Endlosmodus — Reformen etc. laufen weiter, Sieg bleibt. Achievement Nr. 23 "Der Amtsschimmel". double-Falle in Tests: `1e18 − 1 == 1e18` (ULP ≈ 128).
 - **Persistenz:** JSON-Savegame (atomares Schreiben via tmp+move), Autosave 30 s + bei Exit, korrupte Saves werden gesichert statt gelöscht.
 - **Tests:** 66 xUnit-Tests (inkl. Export/Import-Roundtrip, Versions-Parsing, Settings-Roundtrip, SettingsWindow-Smoke-Test): Engine + UI-Smoke-Tests (`UiSmokeTests` via `Avalonia.Headless` 12.0.5 + `HeadlessUnitTestSession` — Avalonia.Headless.XUnit 12.x braucht xunit v3 und kollidiert mit xunit 2.9.x, daher die Session-Variante; Session ist statisch geteilt, da Avalonia nur einmal pro Prozess initialisiert werden darf). Fangen XAML-Populate-Fehler in CI ab. (inkl. Baum-Integritätstests: alle Prerequisite-/Target-Ids müssen existieren) für Engine-Logik (Ökonomie, Prestige, Auto-Buyer, Offline, Formatter).
 
 ## Roadmap
 
-- **Balancing-Pass DRINGEND:** Spieler erreichte 200+ Reformen — endlose Meilensteine (×2) + Bürokratieabbau (×1,1 endlos) überholen die ×10-Reform-Schwelle deutlich. Kandidaten: Schwellenwachstum erhöhen (×15–×20), Meilenstein-Bonus degressiv (×2 → ×1,5 ab Schwelle N), Bürokratieabbau-Kostenwachstum steiler. Achtung: ab ~Reform 300 läuft `CurrentPrestigeThreshold` in double-Infinity.
+- Balancing-Beobachtung (Realdaten): 7 Reformen ≈ 200 Paragraphen bei komplett erforschtem Baum — Overshoot pro Run funktioniert wie beabsichtigt. Sieg ist auf Reform 10 kalibriert (Schwelle dort 1e16, Aktendeckel 1e18 = ×100). Kein akuter Handlungsbedarf; Feintuning erst nach Feedback zum Endgame.
 - Optional: Soundeffekte (Stempelgeräusch) via minimaler Audio-Lib — bewusst noch nicht drin.
 - Forschungsbaum ggf. visuell als Graph statt Liste darstellen.
 - System-Tray-Minimierung (Muster aus Checkmk Cockpit übernehmbar).
