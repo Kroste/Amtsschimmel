@@ -26,6 +26,7 @@ Sachbearbeiter und ganze Dezernate ein — und wenn der Laden läuft: Verwaltung
 - 🔄 **Update-Check:** Prüft GitHub-Releases (proxy-fähig), beim Start und manuell
 - ⚙️ **Einstellungen:** Autosave-Intervall, Ticker, Spielstand-Export/-Import als Text, Reset
 - ⌨️ **Hotkeys:** Leertaste stempelt, Tasten 1–5 wechseln die Tabs
+- 🏆 **Siegesbedingung:** Der Goldene Aktendeckel — alle Fortbildungen, 25 Reformen und 1 Trill. Stempel; danach Endlosmodus
 
 ## Lizenz
 

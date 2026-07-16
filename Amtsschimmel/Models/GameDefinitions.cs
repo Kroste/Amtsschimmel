@@ -85,6 +85,7 @@ public static class GameDefinitions
         new("click_lvl_5",   "Turbo-Stempelkissen",   "Klick-Upgrade auf Stufe 5.",                    s => s.ClickUpgradeLevel >= 5),
         new("gen_100_single","Beförderungswelle",     "Beschäftige 100 Einheiten eines Generatortyps.",s => s.Generators.Values.Any(g => g.Owned >= 100)),
         new("golden_10",     "Goldgräber",            "Erwische 10 Goldene Formulare.",                s => s.GoldenFormsClicked >= 10),
+        new("victory",       "Der Amtsschimmel",      "Erwirb den Goldenen Aktendeckel — das Amt ist vollendet.", s => s.HasWon),
     ];
 
     private static int TotalOwned(GameState s) => s.Generators.Values.Sum(g => g.Owned);

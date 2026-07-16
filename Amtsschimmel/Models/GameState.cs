@@ -49,6 +49,15 @@ public sealed class GameState
     /// <summary>Anzahl geklickter Goldener Formulare.</summary>
     public int GoldenFormsClicked { get; set; }
 
+    /// <summary>true, sobald der Goldene Aktendeckel gekauft wurde (Siegesbedingung erfüllt).</summary>
+    public bool HasWon { get; set; }
+
+    /// <summary>Zeitpunkt des Sieges (UTC).</summary>
+    public DateTime? WonAtUtc { get; set; }
+
+    /// <summary>Spielzeit zum Zeitpunkt des Sieges (Sekunden).</summary>
+    public double? WonAfterPlaySeconds { get; set; }
+
     /// <summary>Zeitpunkt des letzten Speicherns (UTC) — Basis für Offline-Fortschritt.</summary>
     public DateTime LastSavedUtc { get; set; } = DateTime.UtcNow;
 

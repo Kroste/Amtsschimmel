@@ -61,6 +61,25 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private double _prestigeProgress;
 
+    // ---- Verwaltungsvollendung (Siegesbedingung) ----
+    [ObservableProperty]
+    private bool _hasWon;
+
+    [ObservableProperty]
+    private bool _canWin;
+
+    [ObservableProperty]
+    private string _victoryResearchText = "";
+
+    [ObservableProperty]
+    private string _victoryReformText = "";
+
+    [ObservableProperty]
+    private string _victoryCostText = "";
+
+    [ObservableProperty]
+    private string _victoryWonText = "";
+
     // ---- Buff (Goldene Formulare) ----
     [ObservableProperty]
     private string _buffText = "";
@@ -239,6 +258,26 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void BuyVictory()
+    {
+        if (!_engine.Win())
+        {
+            return;
+        }
+        Save();
+        RefreshAll();
+        var window = new Views.VictoryWindow { DataContext = new VictoryViewModel(_engine.State) };
+        if (MainWindow is { } owner)
+        {
+            window.ShowDialog(owner);
+        }
+        else
+        {
+            window.Show();
+        }
+    }
+
+    [RelayCommand]
     private void ShowSettings()
     {
         var window = new Views.SettingsWindow
@@ -309,6 +348,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
         PrestigeProgress = Math.Clamp(state.TotalEarnedThisRun / _engine.CurrentPrestigeThreshold, 0, 1);
         AchievementCountText = $"{state.UnlockedAchievements.Count} / {GameDefinitions.Achievements.Count}";
         ResearchCountText = $"{state.ResearchLevels.Values.Sum()} Stufen in {state.ResearchLevels.Count} / {ResearchDefinitions.All.Count} Fortbildungen";
+
+        HasWon = state.HasWon;
+        CanWin = _engine.CanWin;
+        VictoryResearchText = (_engine.AllResearchCompleted ? "✅" : "🔒")
+            + $" Alle Fortbildungen erforscht ({ResearchDefinitions.All.Count(r => state.GetResearchLevel(r.Id) >= 1)} / {ResearchDefinitions.All.Count})";
+        VictoryReformText = (_engine.VictoryReformsMet ? "✅" : "🔒")
+            + $" Mindestens {GameEngine.VictoryMinReformen} Reformen ({state.TotalReformen})";
+        VictoryCostText = (_engine.CanAfford(GameEngine.VictoryCost) ? "✅" : "🔒")
+            + $" {NumberFormatter.Format(GameEngine.VictoryCost)} Stempel auf dem Konto";
+        if (state.HasWon && state.WonAtUtc is { } wonAt)
+        {
+            VictoryWonText = $"🏆 Vollendet am {wonAt.ToLocalTime():dd.MM.yyyy HH:mm} Uhr — das Amt läuft im Endlosmodus weiter.";
+        }
 
         IsBuffVisible = _engine.IsBuffActive;
         if (IsBuffVisible)

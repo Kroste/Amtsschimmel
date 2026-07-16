@@ -401,6 +401,43 @@ public sealed class GameEngine
         return (counted, earned);
     }
 
+    // ---------- Siegesbedingung ("Verwaltungsvollendung") ----------
+
+    /// <summary>Preis des Goldenen Aktendeckels — das finale Kaufziel.</summary>
+    public const double VictoryCost = 1e18;
+
+    /// <summary>Mindestanzahl Reformen für die Vollendung.</summary>
+    public const int VictoryMinReformen = 25;
+
+    /// <summary>Alle Fortbildungen mindestens einmal erforscht?</summary>
+    public bool AllResearchCompleted =>
+        ResearchDefinitions.All.All(r => State.GetResearchLevel(r.Id) >= 1);
+
+    public bool VictoryReformsMet => State.TotalReformen >= VictoryMinReformen;
+
+    /// <summary>Alle Bedingungen erfüllt UND bezahlbar?</summary>
+    public bool CanWin =>
+        !State.HasWon && AllResearchCompleted && VictoryReformsMet && CanAfford(VictoryCost);
+
+    /// <summary>
+    /// Kauft den Goldenen Aktendeckel: markiert den Spielstand als gewonnen.
+    /// Das Spiel läuft danach als Endlosmodus weiter.
+    /// </summary>
+    public bool Win()
+    {
+        if (!CanWin)
+        {
+            return false;
+        }
+        State.Stempel -= VictoryCost;
+        State.HasWon = true;
+        State.WonAtUtc = DateTime.UtcNow;
+        State.WonAfterPlaySeconds = State.TotalPlaySeconds;
+        Log.Info("SIEG: Goldener Aktendeckel erworben nach {Reformen} Reformen und {Zeit:0} s Spielzeit.",
+            State.TotalReformen, State.TotalPlaySeconds);
+        return true;
+    }
+
     // ---------- Achievements ----------
 
     private void CheckAchievements()

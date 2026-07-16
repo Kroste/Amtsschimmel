@@ -338,6 +338,28 @@
                             (u. a. Bundesministerium, KI-Cloud, Stempelautomat, Exzellenz-Zweig)
                             schalten erst nach bestimmten Reformen frei.
                         </TextBlock>
+
+                        <Border Background="#2E2712" CornerRadius="8" Padding="16"
+                                BorderBrush="#E0B14C" BorderThickness="1">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="🏆 Verwaltungsvollendung" FontSize="18" FontWeight="Bold"
+                                           Foreground="#E0B14C" />
+                                <TextBlock TextWrapping="Wrap" Opacity="0.85" FontSize="12"
+                                           Text="Das finale Ziel: der Goldene Aktendeckel. Wer ihn erwirbt, hat das Amt vollendet — gespielt werden darf danach trotzdem weiter." />
+                                <StackPanel Spacing="4" IsVisible="{Binding !HasWon}">
+                                    <TextBlock Text="{Binding VictoryResearchText}" FontSize="13" />
+                                    <TextBlock Text="{Binding VictoryReformText}" FontSize="13" />
+                                    <TextBlock Text="{Binding VictoryCostText}" FontSize="13" />
+                                </StackPanel>
+                                <Button Content="🏆 Goldenen Aktendeckel erwerben"
+                                        Command="{Binding BuyVictoryCommand}" IsEnabled="{Binding CanWin}"
+                                        IsVisible="{Binding !HasWon}"
+                                        Background="#8B6914" Height="44" FontWeight="Bold"
+                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                                <TextBlock Text="{Binding VictoryWonText}" TextWrapping="Wrap"
+                                           IsVisible="{Binding HasWon}" Foreground="#E0B14C" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </TabItem>
 

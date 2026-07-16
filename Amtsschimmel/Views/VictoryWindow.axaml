@@ -1,0 +1,53 @@
+<views:ChromeWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="using:Amtsschimmel.Views"
+        xmlns:vm="using:Amtsschimmel.ViewModels"
+        x:Class="Amtsschimmel.Views.VictoryWindow"
+        x:DataType="vm:VictoryViewModel"
+        Width="560" Height="520" MinWidth="480" MinHeight="440"
+        WindowStartupLocation="CenterOwner"
+        Title="Verwaltungsvollendung">
+
+    <Border Background="#1A1D21">
+        <Grid RowDefinitions="Auto,*">
+            <Border Grid.Row="0" Background="#3D3012" Height="36"
+                    PointerPressed="OnTitleBarPointerPressed">
+                <TextBlock Text="🏆 Verwaltungsvollendung" VerticalAlignment="Center"
+                           Margin="12,0" Foreground="#E0B14C" FontWeight="Bold" />
+            </Border>
+
+            <StackPanel Grid.Row="1" Margin="28" Spacing="14">
+                <TextBlock Text="🏆" FontSize="52" HorizontalAlignment="Center" />
+                <TextBlock Text="Der Goldene Aktendeckel gehört dir!" FontSize="22" FontWeight="Bold"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
+                           Foreground="#E0B14C" />
+                <TextBlock TextWrapping="Wrap" TextAlignment="Center" Opacity="0.85">
+                    Dein Amt hat die Verwaltungsvollendung erreicht. Jedes Formular gestempelt,
+                    jede Fortbildung besucht, jede Reform überstanden. Der Amtsschimmel wiehert —
+                    diesmal vor Stolz.
+                </TextBlock>
+
+                <Border Background="#22262B" CornerRadius="8" Padding="16">
+                    <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Spielzeit bis zum Sieg" Opacity="0.7" Margin="0,0,0,6" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding PlayTimeText}" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Reformen" Opacity="0.7" Margin="0,0,0,6" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ReformenText}" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Paragraphen" Opacity="0.7" Margin="0,0,0,6" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ParagraphenText}" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Stempel (alle Zeiten)" Opacity="0.7" Margin="0,0,0,6" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AllTimeText}" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Manuelle Klicks" Opacity="0.7" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ClicksText}" />
+                    </Grid>
+                </Border>
+
+                <TextBlock TextWrapping="Wrap" TextAlignment="Center" FontSize="12" Opacity="0.6"
+                           Text="Das Amt läuft natürlich weiter — Dienst ist Dienst." />
+                <Button Content="📋 Weiterstempeln" Click="OnContinueClick"
+                        HorizontalAlignment="Center" Padding="24,10"
+                        Background="#3A6EA5" FontWeight="Bold" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</views:ChromeWindow>
