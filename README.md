@@ -19,7 +19,7 @@ Sachbearbeiter und ganze Dezernate ein — und wenn der Laden läuft: Verwaltung
 - 💤 **Offline-Fortschritt:** 50 % Effizienz, max. 8 h, Bericht beim Start
 - 💾 **Autosave:** Alle 30 s + beim Beenden, atomares JSON in `%APPDATA%/Amtsschimmel`
 
-- 🏅 **Meilensteine:** Endlose Beförderungs-Schwellen (10, 25, 50, 100, 250, 500, 1.000, …) — jede verdoppelt die Produktion des Generators
+- 🏅 **Meilensteine:** Beförderungen bei 10, 25, 50, 100, 175 und 250 Einheiten — je ×2, die Endbeförderung bei 250 sogar ×3
 - ✨ **Goldene Formulare:** Zufällig auftauchendes Klick-Event — Sofort-Stempel oder ×7-Produktionsboost
 - 📰 **Amtsblatt:** Satirischer Nachrichten-Ticker, der auf den Spielstand reagiert
 - 📈 **Statistik:** Lifetime-Werte und Einkommensverlauf als Kurve

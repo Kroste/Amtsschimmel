@@ -22,10 +22,14 @@ public sealed class JuiceFeatureTests
         Assert.Equal(2, engine.MilestoneMultiplierFor(Praktikant.Id));
         gen.Owned = 50;   // 10, 25, 50 erreicht
         Assert.Equal(8, engine.MilestoneMultiplierFor(Praktikant.Id));
-        gen.Owned = 200;  // 10, 25, 50, 100
-        Assert.Equal(16, engine.MilestoneMultiplierFor(Praktikant.Id));
-        gen.Owned = 1000; // + 250, 500, 1000 → 7 Schwellen (endlose Folge!)
-        Assert.Equal(128, engine.MilestoneMultiplierFor(Praktikant.Id));
+        gen.Owned = 200;  // 10, 25, 50, 100, 175
+        Assert.Equal(32, engine.MilestoneMultiplierFor(Praktikant.Id));
+        gen.Owned = 249;  // noch keine Endbeförderung
+        Assert.Equal(32, engine.MilestoneMultiplierFor(Praktikant.Id));
+        gen.Owned = 250;  // Endbeförderung: 2⁵ × 3 = 96
+        Assert.Equal(96, engine.MilestoneMultiplierFor(Praktikant.Id));
+        gen.Owned = 5000; // danach ist Schluss — bleibt bei 96
+        Assert.Equal(96, engine.MilestoneMultiplierFor(Praktikant.Id));
     }
 
     [Fact]
@@ -44,17 +48,28 @@ public sealed class JuiceFeatureTests
     }
 
     [Fact]
-    public void NextMilestone_FolgeIstEndlos()
+    public void NextMilestone_EndetBei250()
     {
         var engine = new GameEngine();
         var gen = engine.State.GetGenerator(Praktikant.Id);
         Assert.Equal(10, engine.NextMilestoneFor(Praktikant.Id));
         gen.Owned = 60;
         Assert.Equal(100, engine.NextMilestoneFor(Praktikant.Id));
+        gen.Owned = 150;
+        Assert.Equal(175, engine.NextMilestoneFor(Praktikant.Id));
         gen.Owned = 200;
         Assert.Equal(250, engine.NextMilestoneFor(Praktikant.Id));
-        gen.Owned = 5_000;
-        Assert.Equal(10_000, engine.NextMilestoneFor(Praktikant.Id));
+        gen.Owned = 250;
+        Assert.Null(engine.NextMilestoneFor(Praktikant.Id));
+    }
+
+    [Fact]
+    public void Endbefoerderung_SchaltetAchievementFrei()
+    {
+        var engine = new GameEngine();
+        engine.State.GetGenerator(Praktikant.Id).Owned = 250;
+        engine.Tick(0.1);
+        Assert.Contains("gen_250", engine.State.UnlockedAchievements);
     }
 
     // ---------- Buff (Goldene Formulare) ----------

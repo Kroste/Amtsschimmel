@@ -34,18 +34,13 @@ public sealed record AchievementDefinition(
 public static class GameDefinitions
 {
     /// <summary>
-    /// Endlose Meilenstein-Folge im 1-2,5-5-Dekadenmuster: 10, 25, 50, 100, 250, 500,
-    /// 1.000, 2.500, 5.000, … — jede erreichte Schwelle verdoppelt die Produktion des Generators.
+    /// Meilenstein-Schwellen ("Beförderungen"): je ×2 Produktion, die letzte Stufe (250)
+    /// ist die Endbeförderung mit ×3. Danach ist Schluss — der Stellenplan ist erfüllt.
     /// </summary>
-    public static IEnumerable<long> MilestoneSequence()
-    {
-        for (var magnitude = 10L; magnitude < long.MaxValue / 10; magnitude *= 10)
-        {
-            yield return magnitude;
-            yield return (long)(magnitude * 2.5);
-            yield return magnitude * 5;
-        }
-    }
+    public static readonly long[] MilestoneThresholds = [10, 25, 50, 100, 175, 250];
+
+    /// <summary>Letzte Beförderungsstufe (Endbeförderung, ×3).</summary>
+    public const long FinalMilestone = 250;
 
     public static readonly IReadOnlyList<GeneratorDefinition> Generators =
     [
@@ -85,6 +80,7 @@ public static class GameDefinitions
         new("click_lvl_5",   "Turbo-Stempelkissen",   "Klick-Upgrade auf Stufe 5.",                    s => s.ClickUpgradeLevel >= 5),
         new("gen_100_single","Beförderungswelle",     "Beschäftige 100 Einheiten eines Generatortyps.",s => s.Generators.Values.Any(g => g.Owned >= 100)),
         new("golden_10",     "Goldgräber",            "Erwische 10 Goldene Formulare.",                s => s.GoldenFormsClicked >= 10),
+        new("gen_250",       "Stellenplan erfüllt",   "250 Einheiten eines Generatortyps — Endbeförderung!", s => s.Generators.Values.Any(g => g.Owned >= 250)),
         new("victory",       "Der Amtsschimmel",      "Erwirb den Goldenen Aktendeckel — das Amt ist vollendet.", s => s.HasWon),
     ];
 

@@ -67,19 +67,30 @@ public sealed class GameEngine
 
     // ---------- Meilensteine ("Beförderungen") ----------
 
-    /// <summary>×2 je erreichter Meilenstein-Schwelle (endlose Folge 10/25/50/100/250/…).</summary>
+    /// <summary>
+    /// ×2 je erreichter Schwelle (10/25/50/100/175/250); die Endbeförderung bei 250
+    /// zählt ×3 statt ×2 (Gesamtfaktor voll ausgebaut: 2⁵ × 3 = 96).
+    /// </summary>
     public double MilestoneMultiplierFor(string generatorId)
     {
         var owned = State.GetGenerator(generatorId).Owned;
-        var reached = GameDefinitions.MilestoneSequence().TakeWhile(t => t <= owned).Count();
-        return Math.Pow(2, reached);
+        var reached = GameDefinitions.MilestoneThresholds.Count(t => t <= owned);
+        var factor = Math.Pow(2, reached);
+        return owned >= GameDefinitions.FinalMilestone ? factor * 1.5 : factor;
     }
 
-    /// <summary>Nächste noch nicht erreichte Meilenstein-Schwelle (Folge ist endlos).</summary>
-    public long NextMilestoneFor(string generatorId)
+    /// <summary>Nächste Schwelle, oder null nach der Endbeförderung (250).</summary>
+    public long? NextMilestoneFor(string generatorId)
     {
         var owned = State.GetGenerator(generatorId).Owned;
-        return GameDefinitions.MilestoneSequence().First(t => t > owned);
+        foreach (var threshold in GameDefinitions.MilestoneThresholds)
+        {
+            if (threshold > owned)
+            {
+                return threshold;
+            }
+        }
+        return null;
     }
 
     public void LoadState(GameState state)
@@ -283,9 +294,8 @@ public sealed class GameEngine
         var before = gen.Owned;
         gen.Owned += amount;
         Log.Debug("Gekauft: {Amount}x {Name} für {Cost:0} Stempel", amount, def.Name, cost);
-        foreach (var threshold in GameDefinitions.MilestoneSequence()
-                     .SkipWhile(t => t <= before)
-                     .TakeWhile(t => t <= gen.Owned))
+        foreach (var threshold in GameDefinitions.MilestoneThresholds
+                     .Where(t => before < t && t <= gen.Owned))
         {
             Log.Info("Meilenstein: {Name} erreicht {Threshold} Einheiten (×2)", def.Name, threshold);
             MilestoneReached?.Invoke(def, threshold);

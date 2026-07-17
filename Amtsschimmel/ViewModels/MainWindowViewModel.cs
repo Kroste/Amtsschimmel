@@ -413,7 +413,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         ShowToast($"🏆 {achievement.Name} — {achievement.Description} (+1 % Produktion)");
 
     private void OnMilestoneReached(GeneratorDefinition def, long threshold) =>
-        ShowToast($"🏅 Beförderung! {threshold}× {def.Name} — Produktion des Typs verdoppelt!");
+        ShowToast(threshold >= GameDefinitions.FinalMilestone
+            ? $"🎖️ ENDBEFÖRDERUNG! 250× {def.Name} — Stellenplan erfüllt, Produktion ×3!"
+            : $"🏅 Beförderung! {threshold}× {def.Name} — Produktion des Typs verdoppelt!");
 
     private void ShowToast(string text)
     {
